@@ -97,14 +97,43 @@ Created by **Mike & Fried** — built by fans, for fans.
 
 ---
 
-## 👥 Authors & Contributors
+## 👥 Authors & Co-Creators
 
 * **Fried** ([@kburna243](https://github.com/kburna243)) – Core Development, System Architecture, UI Design & Android Engineering
 * **Mike** – Co-Development, Architecture, UI Design, Concept & Testing
 
 ---
 
-## 📜 License
+## 🤝 Community & Credits
 
-Licensed under the [GNU General Public License v3.0](LICENSE).
-CyTube is an open-source project by [calzoneman](https://github.com/calzoneman/sync).
+* 🌟 **[SPUDZARENEAT](https://github.com/spudzareneat):**  
+  Special shoutout to SPUDZARENEAT! While we were building this native suite, he independently authored the great web-based TV companion **[grindhouse-tv](https://github.com/spudzareneat/grindhouse-tv)**. His work inspired our lead-time synchronization model.
+* ⚙️ **[calzoneman/sync](https://github.com/calzoneman/sync):**  
+  Immense appreciation to calzoneman and the developers behind the CyTube synchronization and WebSocket architecture.
+* 🛠️ **[Hollis](https://queue.dropsugar.co):**  
+  Huge thank you and credits to Hollis for engineering the backend WebQueue infrastructure, providing live schedule APIs, and actively supporting native CyTube TV integrations!
+* 🍿 **CyTube Community & Channel Operators:**  
+  Special thanks to all channel hosts, DJs, moderators, and viewers keeping 24/7 cinema marathons alive across CyTube rooms.
+
+---
+
+## 🐛 Bugs, Ideas & Feedback
+
+Encountered an issue or have a feature suggestion?
+* 🚀 **In-App:** Open **Settings ➔ Problem melden** directly inside the app.
+* 💻 **GitHub Issues:** Open an issue via our [GitHub Issues](https://github.com/kburna243/mf-cytube-app/issues/new) page.
+
+---
+
+## ❤️ Why We Made It
+
+At the end of the day, this isn't a commercial product. It's a passion project made by fans, for fans, so we can all enjoy great cinema, live streams, and channel marathons together from the comfort of the couch without fighting browser interfaces.
+
+Grab your remote, dim the lights, and see what's playing on CyTube tonight! 🍿🎬
+
+---
+
+## 📜 License & Disclaimer
+
+* **License:** Licensed under the [GNU General Public License v3.0](LICENSE).
+* **Disclaimer:** *This is an **unofficial, non-commercial community project**. It is not affiliated with, sponsored by, or endorsed by CyTube or individual channel administrators. All trademarks, media, and third-party services belong to their respective owners.*
