@@ -14,14 +14,6 @@ class ChannelRepository(context: Context) {
 
     val defaultChannels = listOf(
         ChannelItem(
-            id = "Channel-Z",
-            displayName = "Channel-Z",
-            serverUrl = "https://cytu.be",
-            roomName = "Channel-Z",
-            description = "Cult Cinema, Trash, Sci-Fi & Retro B-Movies",
-            badgeColorHex = "#E040FB"
-        ),
-        ChannelItem(
             id = "420Grindhouse",
             displayName = "420 Grindhouse",
             serverUrl = "https://cytu.be",

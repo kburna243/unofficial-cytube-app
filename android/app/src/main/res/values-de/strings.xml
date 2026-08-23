@@ -113,7 +113,7 @@
     <string name="details_director">Regie</string>
     <string name="details_genre">Genre</string>
     <string name="details_rating">Bewertung</string>
-    <string name="trivia_section">TRIVIA</string>
+    <string name="trivia_section">ZUSÄTZLICHE FAKTEN</string>
     <string name="chat_login_title">Bei CyTube anmelden</string>
     <string name="chat_login_hint">Der Kanal nimmt nur Nachrichten von angemeldeten Nutzern an.</string>
     <string name="chat_username">Benutzername</string>
