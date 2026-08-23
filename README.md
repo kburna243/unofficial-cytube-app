@@ -110,8 +110,6 @@ Created by **Mike & Fried** — built by fans, for fans.
   Special shoutout to SPUDZARENEAT! While we were building this native suite, he independently authored the great web-based TV companion **[grindhouse-tv](https://github.com/spudzareneat/grindhouse-tv)**. His work inspired our lead-time synchronization model.
 * ⚙️ **[calzoneman/sync](https://github.com/calzoneman/sync):**  
   Immense appreciation to calzoneman and the developers behind the CyTube synchronization and WebSocket architecture.
-* 🛠️ **[Hollis](https://queue.dropsugar.co):**  
-  Huge thank you and credits to Hollis for engineering the backend WebQueue infrastructure, providing live schedule APIs, and actively supporting native CyTube TV integrations!
 * 🍿 **CyTube Community & Channel Operators:**  
   Special thanks to all channel hosts, DJs, moderators, and viewers keeping 24/7 cinema marathons alive across CyTube rooms.
 
