@@ -98,6 +98,12 @@ class CyTubeSocketClient(
     private val _mediaSyncEvent = MutableSharedFlow<MediaSyncUpdate>(replay = 1, extraBufferCapacity = 16)
     val mediaSyncEvent: SharedFlow<MediaSyncUpdate> = _mediaSyncEvent.asSharedFlow()
 
+    private val _privateMessageEvent = MutableSharedFlow<com.example.data.model.PrivateMessage>(extraBufferCapacity = 32)
+    val privateMessageEvent: SharedFlow<com.example.data.model.PrivateMessage> = _privateMessageEvent.asSharedFlow()
+
+    private val _magicOtpCodeEvent = MutableSharedFlow<String>(replay = 1, extraBufferCapacity = 8)
+    val magicOtpCodeEvent: SharedFlow<String> = _magicOtpCodeEvent.asSharedFlow()
+
     private val cachedPlaylist = mutableListOf<MediaItem>()
 
     fun switchRoom(roomName: String) {
@@ -251,6 +257,10 @@ class CyTubeSocketClient(
                         "chatMsg" -> {
                             val data = eventArray.optJSONObject(1)
                             if (data != null) handleIncomingChat(data)
+                        }
+                        "pm" -> {
+                            val data = eventArray.optJSONObject(1)
+                            if (data != null) handleIncomingPm(data)
                         }
                         "changeMedia", "setCurrent" -> {
                             val data = eventArray.optJSONObject(1)
@@ -472,6 +482,34 @@ class CyTubeSocketClient(
             current.add(newMsg)
             if (current.size > 100) current.removeAt(0)
             _chatMessages.value = current
+        }
+    }
+
+    private fun handleIncomingPm(data: JSONObject) {
+        val from = data.optString("username", data.optString("from", "System"))
+        val rawMsg = data.optString("msg", data.optString("text", ""))
+        val time = data.optLong("time", System.currentTimeMillis())
+        val to = data.optString("to", "")
+        val cleanMsg = rawMsg.replace(Regex("<[^>]*>"), "").trim()
+
+        if (cleanMsg.isNotEmpty()) {
+            val pm = com.example.data.model.PrivateMessage(
+                from = from,
+                text = cleanMsg,
+                timestamp = time,
+                to = to
+            )
+            _privateMessageEvent.tryEmit(pm)
+            Log.d(TAG, "PM received from $from: $cleanMsg")
+
+            // Magic OTP Auto-Extraction: Detect 6-digit code from Kryten / WebQueue bot
+            val otpRegex = Regex("""\b(\d{6})\b""")
+            val match = otpRegex.find(cleanMsg)
+            if (match != null) {
+                val code = match.groupValues[1]
+                Log.i(TAG, "✨ Magic OTP Code extracted from PM ($from): $code")
+                _magicOtpCodeEvent.tryEmit(code)
+            }
         }
     }
 

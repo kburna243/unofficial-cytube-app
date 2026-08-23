@@ -24,6 +24,7 @@ import com.example.data.scraper.DataScraper
 import com.example.data.scraper.MetadataOverlayState
 import com.example.data.socket.CyTubeSocketClient
 import com.example.ui.player.extractYouTubeId
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +68,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     private val socketClient = CyTubeSocketClient(viewModelScope)
     val dataScraper = DataScraper(viewModelScope)
+    val webQueueClient = com.example.data.webqueue.WebQueueApiClient(settingsRepository = settingsRepo)
     private val movieInfoRepo = MovieInfoRepository()
 
     private val _movieInfo = MutableStateFlow<MovieInfo?>(null)
@@ -79,6 +81,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     val isTriviaLoading: StateFlow<Boolean> = _isTriviaLoading.asStateFlow()
 
     private var movieInfoJob: Job? = null
+    private var webQueuePollingJob: Job? = null
 
     val connectionStatus: StateFlow<ConnectionStatus> = socketClient.connectionStatus
     val nowPlaying: StateFlow<MediaItem?> = socketClient.nowPlaying
@@ -91,15 +94,24 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     val queueScheduleItems: StateFlow<List<QueueScheduleItem>> = dataScraper.queueScheduleItems
     val mediaSyncEvent: SharedFlow<MediaSyncUpdate> = socketClient.mediaSyncEvent
 
+    private val _otpState = MutableStateFlow<com.example.data.model.WebQueueOtpState>(com.example.data.model.WebQueueOtpState.Idle)
+    val otpState: StateFlow<com.example.data.model.WebQueueOtpState> = _otpState.asStateFlow()
+
+    private val _isFirstRunDialogOpen = MutableStateFlow(!settingsRepo.isFirstRunCompleted() && settingsRepo.chatCredentials() == null)
+    val isFirstRunDialogOpen: StateFlow<Boolean> = _isFirstRunDialogOpen.asStateFlow()
+
+    private val _webQueueScheduleItems = MutableStateFlow<List<QueueScheduleItem>>(emptyList())
+    val webQueueScheduleItems: StateFlow<List<QueueScheduleItem>> = _webQueueScheduleItems.asStateFlow()
+
+    private val _webQueueNextSchedule = MutableStateFlow<String?>(null)
+    val webQueueNextSchedule: StateFlow<String?> = _webQueueNextSchedule.asStateFlow()
+
     val metadataOverlayState: StateFlow<MetadataOverlayState> = combine(
         socketClient.nowPlaying,
         socketClient.upNext,
         socketClient.playlist,
-        dataScraper.scheduleItems,
-        dataScraper.queueScheduleItems,
-        dataScraper.redditScheduleTitle,
-        dataScraper.redditScheduleText,
-        dataScraper.isRedditFallback,
+        _webQueueScheduleItems,
+        _webQueueNextSchedule,
         socketClient.userCount,
         socketClient.motd,
         settings,
@@ -111,22 +123,33 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         @Suppress("UNCHECKED_CAST")
         val socketPlaylist = args[2] as? List<MediaItem> ?: emptyList()
         @Suppress("UNCHECKED_CAST")
-        val scheduleNext = args[3] as? List<MediaItem> ?: emptyList()
-        @Suppress("UNCHECKED_CAST")
-        val scrapedQueueItems = args[4] as? List<QueueScheduleItem> ?: emptyList()
-        val redditTitle = args[5] as? String
-        val redditText = args[6] as? String
-        val isReddit = args[7] as? Boolean ?: false
-        val users = args[8] as? Int ?: 0
-        val motdText = args[9] as? String
-        val cfg = args[10] as? AppSettings ?: AppSettings()
-        val chan = args[11] as? ChannelItem
+        val webQueueItems = args[3] as? List<QueueScheduleItem> ?: emptyList()
+        val webNextSched = args[4] as? String
+        val users = args[5] as? Int ?: 0
+        val motdText = args[6] as? String
+        val cfg = args[7] as? AppSettings ?: AppSettings()
+        val chan = args[8] as? ChannelItem
 
         val socketCandidates = if (socketNext.isNotEmpty()) socketNext else socketPlaylist
         val socketQueue = buildQueueScheduleFromSocket(now, socketCandidates)
 
-        val finalNext = socketNext
-        val finalQueueItems = socketQueue
+        val isChannelZ = chan?.roomName?.equals("Channel-Z", ignoreCase = true) == true
+
+        val finalNext = if (socketNext.isNotEmpty()) socketNext
+        else if (isChannelZ && webQueueItems.isNotEmpty()) {
+            webQueueItems.map {
+                MediaItem(id = it.mediaId, title = it.title, durationSeconds = it.durationSeconds.toDouble())
+            }
+        } else socketNext
+
+        val finalQueueItems = if (isChannelZ && webQueueItems.isNotEmpty()) webQueueItems else socketQueue
+
+        val scheduleTitle = if (isChannelZ && !webNextSched.isNullOrBlank()) "Upcoming Marathon / Event"
+        else if (!motdText.isNullOrBlank()) "${chan?.displayName ?: "Room"} MOTD"
+        else null
+
+        val scheduleText = if (isChannelZ) webNextSched else motdText
+        val isFallback = finalQueueItems.isEmpty() && !scheduleText.isNullOrBlank()
 
         MetadataOverlayState(
             nowPlaying = now,
@@ -135,9 +158,9 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             channelName = chan?.displayName ?: cfg.roomName,
             userCount = users,
             isLoading = now == null,
-            redditScheduleTitle = if (!motdText.isNullOrBlank()) "${chan?.displayName ?: "Room"} MOTD" else null,
-            redditScheduleText = motdText,
-            isRedditFallback = !motdText.isNullOrBlank()
+            redditScheduleTitle = scheduleTitle,
+            redditScheduleText = scheduleText,
+            isRedditFallback = isFallback
         )
     }.stateIn(
         scope = viewModelScope,
@@ -253,21 +276,35 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
 
-        // Zugangsdaten erst wegschreiben, wenn der Kanal sie bestaetigt hat — sonst
-        // wuerde sich ein vertipptes Passwort festbrennen und bei jedem Start still
-        // scheitern. Die stille Wiederaufnahme nach Reconnects geht nicht durch
-        // login(), braucht hier also nichts zu speichern (steht laengst fest).
+        // Magic WebQueue OTP Listener: Automatisches Abfangen des Kryten-Bestätigungscodes
         viewModelScope.launch {
-            socketClient.loginState.collect { state ->
-                if (state is LoginState.LoggedIn) {
-                    pendingCredentials?.let { (name, pw) ->
-                        settingsRepo.saveChatCredentials(name, pw)
-                        _savedChatUsername.value = name
+            socketClient.magicOtpCodeEvent.collect { code ->
+                val currentOtpState = _otpState.value
+                val username = when (currentOtpState) {
+                    is com.example.data.model.WebQueueOtpState.WaitingForCode -> currentOtpState.username
+                    is com.example.data.model.WebQueueOtpState.RequestingOtp -> pendingCredentials?.first ?: _savedChatUsername.value
+                    else -> pendingCredentials?.first ?: _savedChatUsername.value
+                }.ifBlank { _savedChatUsername.value }
+
+                if (username.isNotBlank() && code.isNotBlank()) {
+                    Log.i(TAG, "✨ Magic OTP triggered for '$username' with code '$code'")
+                    _otpState.value = com.example.data.model.WebQueueOtpState.Verifying(username, code)
+                    val verifyResult = webQueueClient.verifyOtp(username, code)
+                    if (verifyResult.isSuccess) {
+                        Log.i(TAG, "🎉 WebQueue Magic Login successful!")
+                        _otpState.value = com.example.data.model.WebQueueOtpState.Success(username)
+                        settingsRepo.setFirstRunCompleted(true)
+                        startWebQueuePolling()
+                    } else {
+                        val err = verifyResult.exceptionOrNull()?.message ?: "OTP verification failed"
+                        _otpState.value = com.example.data.model.WebQueueOtpState.Failed(err)
                     }
-                    pendingCredentials = null
                 }
             }
         }
+
+        // Start WebQueue polling loop
+        startWebQueuePolling()
 
         // Initial auto-hide timer for Remote Hints (6s on startup)
         scheduleRemoteHintsHide(6000L)
@@ -286,17 +323,28 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         if (!settings.value.movieInfoEnabled || rawTitle.isBlank()) return
 
         movieInfoJob = viewModelScope.launch {
-            // Bei YouTube zuerst dort nachfragen: Trailer und Bumper stehen in keiner
-            // Filmdatenbank, haben aber auf YouTube Titel, Kanal und Vorschaubild.
-            val fromYouTube = if (media?.type?.lowercase() == "yt") {
+            // 1. Zuerst WebQueue / Channel-Z Katalog abfragen (kennt exacten imdb_tt Code und Beschreibung)
+            val isChannelZ = selectedChannel.value.roomName.equals("Channel-Z", ignoreCase = true)
+            val catalogItem = if (isChannelZ) webQueueClient.searchCatalog(rawTitle).getOrNull() else null
+            val fromCatalog = if (catalogItem?.imdbTt != null) {
+                movieInfoRepo.lookupFromImdbId(catalogItem.imdbTt, catalogItem.title)
+            } else null
+
+            // 2. Bei YouTube zuerst dort nachfragen wenn type == yt
+            val fromYouTube = if (fromCatalog == null && media?.type?.lowercase() == "yt") {
                 movieInfoRepo.lookupYouTube(extractYouTubeId(media.id))
             } else null
 
-            val info = movieInfoRepo.lookup(rawTitle, useImdb = settings.value.imdbEnabled)
+            val info = fromCatalog
+                ?: movieInfoRepo.lookup(rawTitle, useImdb = settings.value.imdbEnabled)
                 ?: fromYouTube
+
             if (info != null) {
-                Log.d(TAG, "Filminfo gefunden: ${info.title} (${info.year}) imdb=${info.imdbId}")
-                _movieInfo.value = info
+                val finalInfo = if (info.plot.isNullOrBlank() && !catalogItem?.description.isNullOrBlank()) {
+                    info.copy(plot = catalogItem.description)
+                } else info
+                Log.d(TAG, "Filminfo gefunden: ${finalInfo.title} (${finalInfo.year}) imdb=${finalInfo.imdbId}")
+                _movieInfo.value = finalInfo
             }
         }
     }
@@ -434,7 +482,80 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         pendingCredentials = null
         settingsRepo.clearChatCredentials()
         _savedChatUsername.value = ""
+        webQueueClient.logout()
         socketClient.logout()
+    }
+
+    fun startMagicLogin(username: String, password: String = "") {
+        val cleanName = username.trim()
+        if (cleanName.isBlank()) return
+        Log.i(TAG, "Initiating Magic WebQueue Login for user '$cleanName'")
+        _otpState.value = com.example.data.model.WebQueueOtpState.RequestingOtp
+
+        login(cleanName, password)
+
+        viewModelScope.launch {
+            val reqResult = webQueueClient.requestOtp(cleanName)
+            if (reqResult.isSuccess) {
+                Log.i(TAG, "OTP requested successfully from WebQueue, waiting for Kryten PM code...")
+                _otpState.value = com.example.data.model.WebQueueOtpState.WaitingForCode(cleanName)
+            } else {
+                val err = reqResult.exceptionOrNull()?.message ?: "OTP Request failed"
+                Log.w(TAG, "Failed to request OTP: $err")
+                _otpState.value = com.example.data.model.WebQueueOtpState.Failed(err)
+            }
+        }
+    }
+
+    fun verifyManualOtp(username: String, code: String) {
+        val cleanName = username.trim()
+        val cleanCode = code.trim()
+        if (cleanName.isBlank() || cleanCode.isBlank()) return
+        Log.i(TAG, "Manually verifying OTP for '$cleanName' with code '$cleanCode'")
+        _otpState.value = com.example.data.model.WebQueueOtpState.Verifying(cleanName, cleanCode)
+        viewModelScope.launch {
+            val verifyResult = webQueueClient.verifyOtp(cleanName, cleanCode)
+            if (verifyResult.isSuccess) {
+                Log.i(TAG, "🎉 WebQueue Manual OTP Login successful!")
+                _otpState.value = com.example.data.model.WebQueueOtpState.Success(cleanName)
+                settingsRepo.setFirstRunCompleted(true)
+                startWebQueuePolling()
+            } else {
+                val err = verifyResult.exceptionOrNull()?.message ?: "OTP verification failed"
+                _otpState.value = com.example.data.model.WebQueueOtpState.Failed(err)
+            }
+        }
+    }
+
+    fun dismissFirstRunDialog() {
+        settingsRepo.setFirstRunCompleted(true)
+        _isFirstRunDialogOpen.value = false
+    }
+
+    fun startWebQueuePolling() {
+        webQueuePollingJob?.cancel()
+        webQueuePollingJob = viewModelScope.launch {
+            Log.d(TAG, "Starting WebQueue polling job...")
+            while (isActive) {
+                try {
+                    val stateResult = webQueueClient.fetchQueueState()
+                    if (stateResult.isSuccess) {
+                        val items = stateResult.getOrDefault(emptyList())
+                        _webQueueScheduleItems.value = items
+                    } else {
+                        Log.w(TAG, "WebQueue fetchQueueState failed: ${stateResult.exceptionOrNull()?.message}")
+                    }
+
+                    val schedResult = webQueueClient.fetchNextSchedule()
+                    if (schedResult.isSuccess) {
+                        _webQueueNextSchedule.value = schedResult.getOrNull()
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error in WebQueue polling loop: ${e.message}")
+                }
+                delay(15000L)
+            }
+        }
     }
 
     fun sendChat(message: String): Boolean = socketClient.sendChat(message)

@@ -126,6 +126,8 @@ fun GrindhouseMainScreen(
     val channels by viewModel.channels.collectAsStateWithLifecycle()
     val selectedChannel by viewModel.selectedChannel.collectAsStateWithLifecycle()
     val isZapBannerVisible by viewModel.isZapBannerVisible.collectAsStateWithLifecycle()
+    val otpState by viewModel.otpState.collectAsStateWithLifecycle()
+    val isFirstRunDialogOpen by viewModel.isFirstRunDialogOpen.collectAsStateWithLifecycle()
 
     // Handle system back gestures and back button on Android phones smoothly
     BackHandler(enabled = true) {
@@ -642,7 +644,7 @@ fun GrindhouseMainScreen(
                     onCycleChatLayout = { viewModel.cycleChatLayout() },
                     loginState = loginState,
                     savedChatUsername = savedChatUsername,
-                    onLoginChat = { name, pw -> viewModel.login(name, pw) },
+                    onLoginChat = { name, pw -> viewModel.startMagicLogin(name, pw) },
                     onLogoutChat = { viewModel.logout() },
                     onToggleImdb = { viewModel.toggleImdb() },
                     onUpdateOpacity = { viewModel.updateChatOpacity(it) },
@@ -666,6 +668,25 @@ fun GrindhouseMainScreen(
                     isOpen = showExitDialog,
                     onConfirmExit = onExitApp,
                     onDismiss = { viewModel.dismissExitDialog() }
+                )
+
+                // 11. First Run Login Dialog (Magic WebQueue / CyTube Onboarding)
+                com.example.ui.components.FirstRunLoginDialog(
+                    isOpen = isFirstRunDialogOpen,
+                    otpState = otpState,
+                    initialUsername = savedChatUsername,
+                    onStartMagicLogin = { username, password ->
+                        viewModel.startMagicLogin(username, password)
+                    },
+                    onVerifyManualOtp = { username, code ->
+                        viewModel.verifyManualOtp(username, code)
+                    },
+                    onSkip = {
+                        viewModel.dismissFirstRunDialog()
+                    },
+                    onDismiss = {
+                        viewModel.dismissFirstRunDialog()
+                    }
                 )
             }
         }
