@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/app-icon.png" alt="Unofficial CyTube TV Logo" width="128" style="border-radius: 28px; margin-bottom: 12px;" />
+  <img src="docs/app-banner.webp" alt="Unofficial CyTube TV Logo" width="480" style="border-radius: 16px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);" />
   <h1>📺 Unofficial CyTube TV App</h1>
   <p><strong>Universal Multi-Channel Client for <a href="https://cytu.be">CyTube</a> on Android TV & Fire TV</strong></p>
 
