@@ -61,6 +61,7 @@ fun UpNextOverlay(
     redditScheduleTitle: String? = null,
     redditScheduleText: String? = null,
     isRedditFallback: Boolean = false,
+    roomName: String = "",
     // Am Fernseher bleibt das Panel ein Seitenfluegel, mobil bekommt es fast die ganze
     // Breite — 58 % minus TV-Rand waren im Hochformat nur noch rund 160 dp Leseflaeche.
     isTv: Boolean = true,
@@ -128,8 +129,13 @@ fun UpNextOverlay(
                                     letterSpacing = 1.sp
                                 )
                             )
+                            val subtitleText = if (isRedditFallback) {
+                                if (roomName.isNotBlank()) "$roomName Announcement" else "Room Announcement"
+                            } else {
+                                if (roomName.isNotBlank()) "cytu.be/r/$roomName" else "Live CyTube Playlist"
+                            }
                             Text(
-                                text = if (isRedditFallback) "Channel-Z Announcement" else "Channel-Z Live Playlist (cytu.be/r/Channel-Z)",
+                                text = subtitleText,
                                 style = TextStyle(
                                     color = if (isRedditFallback) AccentVibrantOrange else TextMuted,
                                     fontSize = 11.sp,

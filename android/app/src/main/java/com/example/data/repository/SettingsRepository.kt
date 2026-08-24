@@ -22,7 +22,7 @@ class SettingsRepository(context: Context) {
             chatBackgroundOpacity = prefs.getFloat("chat_opacity", 0.15f),
             chatFontSizeSp = prefs.getInt("chat_font_size", 16),
             languageCode = prefs.getString("language_code", "system") ?: "system",
-            roomName = prefs.getString("room_name", "Channel-Z") ?: "Channel-Z",
+            roomName = prefs.getString("room_name", "420Grindhouse") ?: "420Grindhouse",
             customStreamUrl = prefs.getString("custom_stream_url", "") ?: "",
             safeZoneEnabled = prefs.getBoolean("safe_zone", true),
             subtitlesEnabled = prefs.getBoolean("subtitles_enabled", true),

@@ -50,7 +50,7 @@
     <string name="demo_stream_desc">Load test video (checks video and audio playback)</string>
     <string name="action_play">Play</string>
     <string name="action_retry">Retry</string>
-    <string name="exit_dialog_title">Exit M&amp;F CyTube TV?</string>
+    <string name="exit_dialog_title">Exit Unofficial CyTube TV?</string>
     <string name="exit_dialog_msg">Do you want to exit the player?</string>
     <string name="action_exit">Exit</string>
     <string name="action_cancel">Cancel</string>
@@ -88,8 +88,8 @@
         <item quantity="other">%1$d lines visible at a time</item>
     </plurals>
     <string name="epg_up_next_reddit">UP NEXT (SCHEDULE)</string>
-    <string name="epg_reddit_title_default">Channel-Z Room Schedule</string>
-    <string name="epg_queue_title_reddit">CHANNEL-Z SCHEDULE</string>
+    <string name="epg_reddit_title_default">Channel Schedule</string>
+    <string name="epg_queue_title_reddit">CHANNEL SCHEDULE</string>
     <string name="settings_chat_appearance">Chat Appearance</string>
     <string name="settings_chat_appearance_sub">Lines, duration, colours, opacity, font size</string>
     <string name="action_back">Back</string>

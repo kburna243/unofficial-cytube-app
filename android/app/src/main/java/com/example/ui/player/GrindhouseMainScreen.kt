@@ -328,6 +328,7 @@ fun GrindhouseMainScreen(
                     isRedditFallback = metadataOverlayState.isRedditFallback,
                     connectionStatus = connectionStatus,
                     userCount = userCount,
+                    roomName = selectedChannel?.roomName ?: metadataOverlayState.channelName,
                     movieInfo = movieInfo,
                     isTv = isTv,
                     modifier = Modifier.align(Alignment.TopCenter)
@@ -340,6 +341,7 @@ fun GrindhouseMainScreen(
                     redditScheduleTitle = metadataOverlayState.redditScheduleTitle,
                     redditScheduleText = metadataOverlayState.redditScheduleText,
                     isRedditFallback = metadataOverlayState.isRedditFallback,
+                    roomName = selectedChannel?.displayName ?: selectedChannel?.roomName ?: metadataOverlayState.channelName,
                     isTv = isTv,
                     modifier = Modifier.align(Alignment.CenterEnd)
                 )

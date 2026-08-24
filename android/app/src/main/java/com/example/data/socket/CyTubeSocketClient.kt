@@ -54,7 +54,7 @@ class CyTubeSocketClient(
     private var pingRunnable: Runnable? = null
     private var reconnectRunnable: Runnable? = null
 
-    private var currentRoomName: String = "Channel-Z"
+    private var currentRoomName: String = "420Grindhouse"
     private var isIntentionallyClosed = false
     private var reconnectAttempt = 0
     private var lastPlaylistRequestMs = 0L

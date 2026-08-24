@@ -32,7 +32,7 @@ class ChatSocketManager(
     private val maxHistorySize: Int = 100
 ) {
     private var socket: Socket? = null
-    private var currentRoomName: String = "Channel-Z"
+    private var currentRoomName: String = "420Grindhouse"
     private var reconnectAttempt = 0
     private var reconnectJob: Job? = null
     private var isIntentionallyClosed = false
@@ -54,7 +54,7 @@ class ChatSocketManager(
     /**
      * Connects to the CyTube room Socket.IO server.
      */
-    fun connect(roomName: String = "Channel-Z") {
+    fun connect(roomName: String = "420Grindhouse") {
         currentRoomName = roomName
         isIntentionallyClosed = false
         reconnectJob?.cancel()

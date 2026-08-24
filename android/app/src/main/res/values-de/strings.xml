@@ -51,7 +51,7 @@
     <string name="demo_stream_desc">Test-Video laden (prüft Video- und Audio-Wiedergabe)</string>
     <string name="action_play">Play</string>
     <string name="action_retry">Retry</string>
-    <string name="exit_dialog_title">M&amp;F CyTube TV beenden?</string>
+    <string name="exit_dialog_title">Unofficial CyTube TV beenden?</string>
     <string name="exit_dialog_msg">Möchtest du den Player verlassen?</string>
     <string name="action_exit">Beenden</string>
     <string name="action_cancel">Abbrechen</string>
@@ -89,8 +89,8 @@
         <item quantity="other">%1$d Zeilen gleichzeitig sichtbar</item>
     </plurals>
     <string name="epg_up_next_reddit">ALS NÄCHSTES (SENDEPLAN)</string>
-    <string name="epg_reddit_title_default">Channel-Z Raum-Sendeplan</string>
-    <string name="epg_queue_title_reddit">CHANNEL-Z SENDEPLAN</string>
+    <string name="epg_reddit_title_default">Kanal-Sendeplan</string>
+    <string name="epg_queue_title_reddit">KANAL SENDEPLAN</string>
     <string name="settings_chat_appearance">Chat-Darstellung</string>
     <string name="settings_chat_appearance_sub">Zeilen, Einblenddauer, Farben, Deckkraft, Schriftgröße</string>
     <string name="action_back">Zurück</string>

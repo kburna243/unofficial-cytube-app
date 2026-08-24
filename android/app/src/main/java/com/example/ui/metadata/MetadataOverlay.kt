@@ -74,7 +74,7 @@ fun MetadataOverlay(
     isRedditFallback: Boolean = false,
     connectionStatus: ConnectionStatus = ConnectionStatus.LIVE,
     userCount: Int = 0,
-    roomName: String = "Channel-Z",
+    roomName: String = "",
     movieInfo: MovieInfo? = null,
     // Fernseher brauchen den grossen Rand (Overscan), Handy und Tablet brauchen den Platz.
     isTv: Boolean = true,
