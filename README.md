@@ -61,7 +61,7 @@ Created by **Mike & Fried** — built by fans, for fans.
 
 | Live Stream Fullscreen | Up Next Schedule & Queue |
 | :---: | :---: |
-| <img src="docs/screenshots/02_live_player.png" width="400" /> | <img src="docs/screenshots/04_schedule_queue.png" width="400" /> |
+| <img src="docs/screenshots/02_live_player.png" width="400" /> | <img src="docs/screenshots/04-schedule-queue.png" width="400" /> |
 
 ---
 
