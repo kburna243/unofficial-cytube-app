@@ -219,6 +219,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         settingsRepo.updateSettings { it.copy(roomName = channel.roomName) }
         playerManager.clearMedia()
         socketClient.switchRoom(channel.roomName)
+        startWebQueuePolling()
         _isChannelSelectionVisible.value = false
         showZapBanner()
     }
@@ -228,6 +229,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         settingsRepo.updateSettings { it.copy(roomName = next.roomName) }
         playerManager.clearMedia()
         socketClient.switchRoom(next.roomName)
+        startWebQueuePolling()
         showZapBanner()
     }
 
@@ -236,6 +238,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         settingsRepo.updateSettings { it.copy(roomName = prev.roomName) }
         playerManager.clearMedia()
         socketClient.switchRoom(prev.roomName)
+        startWebQueuePolling()
         showZapBanner()
     }
 
@@ -249,6 +252,12 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun deleteCustomChannel(channel: ChannelItem) {
         channelRepo.deleteCustomChannel(channel)
+    }
+
+    fun refreshChannels() {
+        viewModelScope.launch {
+            channelRepo.refreshPublicChannels()
+        }
     }
 
     init {
@@ -279,6 +288,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         // Magic WebQueue OTP Listener: Automatisches Abfangen des Kryten-Bestätigungscodes
         viewModelScope.launch {
             socketClient.magicOtpCodeEvent.collect { code ->
+                if (!selectedChannel.value.hasKrytenQueue) return@collect
+
                 val currentOtpState = _otpState.value
                 val username = when (currentOtpState) {
                     is com.example.data.model.WebQueueOtpState.WaitingForCode -> currentOtpState.username
@@ -305,6 +316,17 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
         // Start WebQueue polling loop
         startWebQueuePolling()
+
+        // Fetch dynamic public channel list from https://cytu.be/ at startup for zapping and selection
+        viewModelScope.launch {
+            Log.d(TAG, "Fetching live public channels from cytu.be...")
+            val result = channelRepo.refreshPublicChannels()
+            if (result.isSuccess) {
+                Log.i(TAG, "Successfully loaded ${result.getOrNull()?.size} public channels from cytu.be")
+            } else {
+                Log.w(TAG, "Failed to load public channels from cytu.be: ${result.exceptionOrNull()?.message}")
+            }
+        }
 
         // Initial auto-hide timer for Remote Hints (6s on startup)
         scheduleRemoteHintsHide(6000L)
@@ -489,10 +511,18 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     fun startMagicLogin(username: String, password: String = "") {
         val cleanName = username.trim()
         if (cleanName.isBlank()) return
-        Log.i(TAG, "Initiating Magic WebQueue Login for user '$cleanName'")
-        _otpState.value = com.example.data.model.WebQueueOtpState.RequestingOtp
 
         login(cleanName, password)
+
+        if (!selectedChannel.value.hasKrytenQueue) {
+            Log.i(TAG, "Channel '${selectedChannel.value.roomName}' does not use Kryten WebQueue. Skipping Magic Handshake.")
+            _otpState.value = com.example.data.model.WebQueueOtpState.Success(cleanName)
+            settingsRepo.setFirstRunCompleted(true)
+            return
+        }
+
+        Log.i(TAG, "Initiating Magic WebQueue Login for user '$cleanName'")
+        _otpState.value = com.example.data.model.WebQueueOtpState.RequestingOtp
 
         viewModelScope.launch {
             val reqResult = webQueueClient.requestOtp(cleanName)
@@ -534,6 +564,11 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun startWebQueuePolling() {
         webQueuePollingJob?.cancel()
+        if (!selectedChannel.value.hasKrytenQueue) {
+            _webQueueScheduleItems.value = emptyList()
+            _webQueueNextSchedule.value = null
+            return
+        }
         webQueuePollingJob = viewModelScope.launch {
             Log.d(TAG, "Starting WebQueue polling job...")
             while (isActive) {

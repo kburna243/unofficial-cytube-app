@@ -56,13 +56,13 @@ fun SplashScreenView(
 
     val animatedProgress by animateFloatAsState(
         targetValue = if (startAnimation) 1.0f else 0.0f,
-        animationSpec = tween(durationMillis = 2400, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 2600, easing = LinearEasing),
         label = "splashProgress"
     )
 
     LaunchedEffect(Unit) {
         startAnimation = true
-        delay(2800)
+        delay(2900)
         onFinished()
     }
 

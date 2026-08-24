@@ -154,7 +154,7 @@ fun FirstRunLoginDialog(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "🟩🟨🟧🟥 CHANNEL-Z 🟥🟧🟨🟩",
+                            text = "📺 CYTUBE TV 📺",
                             style = TextStyle(
                                 color = PureWhite,
                                 fontWeight = FontWeight.ExtraBold,

@@ -32,14 +32,14 @@ android {
     create("light") {
       dimension = "edition"
       buildConfigField("Boolean", "HAS_CHAT_INPUT", "false")
-      resValue("string", "app_name", "M&F CyTube TV")
+      resValue("string", "app_name", "Unofficial CyTube App")
     }
     create("full") {
       dimension = "edition"
       applicationIdSuffix = ".full"
       versionNameSuffix = "-full"
       buildConfigField("Boolean", "HAS_CHAT_INPUT", "true")
-      resValue("string", "app_name", "M&F CyTube Full")
+      resValue("string", "app_name", "Unofficial CyTube App Full")
     }
   }
 

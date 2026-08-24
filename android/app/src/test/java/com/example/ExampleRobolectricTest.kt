@@ -24,7 +24,7 @@ class ExampleRobolectricTest {
     // sind — deshalb wird der gemeinsame Stamm geprueft und nicht der ganze String.
     assertTrue(
       "Unerwarteter App-Name: $appName",
-      appName.startsWith("M&F CyTube")
+      appName.startsWith("Unofficial CyTube App")
     )
   }
 }

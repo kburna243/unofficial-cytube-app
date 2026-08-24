@@ -7,5 +7,8 @@ data class ChannelItem(
     val roomName: String,
     val description: String = "",
     val badgeColorHex: String = "#8A2BE2",
-    val isCustom: Boolean = false
+    val isCustom: Boolean = false,
+    val hasKrytenQueue: Boolean = false,
+    val userCount: Int = 0,
+    val nowPlaying: String = ""
 )

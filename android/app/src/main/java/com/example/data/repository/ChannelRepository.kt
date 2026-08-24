@@ -19,79 +19,8 @@ class ChannelRepository(context: Context) {
             serverUrl = "https://cytu.be",
             roomName = "420Grindhouse",
             description = "B-Movies, Cult Cinema, Exploitation & Kung-Fu",
-            badgeColorHex = "#00E676"
-        ),
-        ChannelItem(
-            id = "The-Kinoplex",
-            displayName = "The Kinoplex",
-            serverUrl = "https://cytu.be",
-            roomName = "The-Kinoplex",
-            description = "Cinema, Movie Marathons & Live Kino",
-            badgeColorHex = "#FF5722"
-        ),
-        ChannelItem(
-            id = "spookymovienight",
-            displayName = "Spooky Movie Night",
-            serverUrl = "https://cytu.be",
-            roomName = "spookymovienight",
-            description = "Spooky Horror, Cult Movies, Music & More",
-            badgeColorHex = "#AB47BC"
-        ),
-        ChannelItem(
-            id = "sneedtv",
-            displayName = "Sneed TV",
-            serverUrl = "https://cytu.be",
-            roomName = "sneedtv",
-            description = "Memorial Kino, Feature Films & Specials",
-            badgeColorHex = "#FFCA28"
-        ),
-        ChannelItem(
-            id = "v4c",
-            displayName = "vidya4chan",
-            serverUrl = "https://cytu.be",
-            roomName = "v4c",
-            description = "Video games, movies, anime & memes",
-            badgeColorHex = "#66BB6A"
-        ),
-        ChannelItem(
-            id = "American-Dad",
-            displayName = "American Dad",
-            serverUrl = "https://cytu.be",
-            roomName = "American-Dad",
-            description = "American Dad 24/7 Series Stream",
-            badgeColorHex = "#42A5F5"
-        ),
-        ChannelItem(
-            id = "spookyvision",
-            displayName = "Spooky Vision",
-            serverUrl = "https://cytu.be",
-            roomName = "spookyvision",
-            description = "Cozy Horror, Games, Community & Fun",
-            badgeColorHex = "#7E57C2"
-        ),
-        ChannelItem(
-            id = "always_always_sunny",
-            displayName = "Always Sunny",
-            serverUrl = "https://cytu.be",
-            roomName = "always_always_sunny",
-            description = "It's Always Sunny In Philadelphia 24/7 Stream",
-            badgeColorHex = "#FFA726"
-        ),
-        ChannelItem(
-            id = "afterparty",
-            displayName = "Afterparty",
-            serverUrl = "https://cytu.be",
-            roomName = "afterparty",
-            description = "Marekissers Anonymous & Classic Vault Specials",
-            badgeColorHex = "#EC407A"
-        ),
-        ChannelItem(
-            id = "South-Park-Show",
-            displayName = "South Park",
-            serverUrl = "https://cytu.be",
-            roomName = "South-Park-Show",
-            description = "South Park Uncensored 24/7 Episodes",
-            badgeColorHex = "#26C6DA"
+            badgeColorHex = "#00E676",
+            hasKrytenQueue = true
         )
     )
 
@@ -132,7 +61,7 @@ class ChannelRepository(context: Context) {
     }
 
     private fun loadSelectedChannel(): ChannelItem {
-        val selectedRoom = prefs.getString("selected_room", "Channel-Z") ?: "Channel-Z"
+        val selectedRoom = prefs.getString("selected_room", "420Grindhouse") ?: "420Grindhouse"
         return _channels.value.find { it.roomName.equals(selectedRoom, ignoreCase = true) } ?: _channels.value.first()
     }
 
@@ -209,4 +138,134 @@ class ChannelRepository(context: Context) {
             // Persistence fallback
         }
     }
+
+    /**
+     * Fetches public live channels from https://cytu.be/ and dynamically updates the channel list
+     * while preserving custom channels, user counts, and current room selection.
+     */
+    suspend fun refreshPublicChannels(): Result<List<ChannelItem>> = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        try {
+            val client = okhttp3.OkHttpClient.Builder()
+                .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
+
+            val req = okhttp3.Request.Builder()
+                .url("https://cytu.be/")
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) CyTubeTV/1.0")
+                .build()
+
+            val response = client.newCall(req).execute()
+            if (!response.isSuccessful) {
+                return@withContext Result.failure(Exception("HTTP ${response.code}"))
+            }
+
+            val html = response.body?.string().orEmpty()
+            val parsedList = parseChannelsFromHtml(html)
+
+            if (parsedList.isNotEmpty()) {
+                val customList = _channels.value.filter { it.isCustom }
+                val merged = mutableListOf<ChannelItem>()
+                merged.addAll(parsedList)
+
+                // Add custom channels if not already in parsed list
+                for (custom in customList) {
+                    if (merged.none { it.roomName.equals(custom.roomName, ignoreCase = true) }) {
+                        merged.add(custom)
+                    }
+                }
+
+                _channels.value = merged
+
+                // Update selected channel reference with updated info
+                val current = _selectedChannel.value
+                val matched = merged.find { it.roomName.equals(current.roomName, ignoreCase = true) }
+                if (matched != null) {
+                    _selectedChannel.value = matched
+                }
+                return@withContext Result.success(merged)
+            }
+            Result.failure(Exception("No channels found in HTML"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private fun parseChannelsFromHtml(html: String): List<ChannelItem> {
+        val tableMatch = java.util.regex.Pattern.compile("<table[^>]*>(.*?)</table>", java.util.regex.Pattern.DOTALL).matcher(html)
+        if (!tableMatch.find()) return emptyList()
+
+        val tableContent = tableMatch.group(1) ?: return emptyList()
+        val rowMatcher = java.util.regex.Pattern.compile("<tr[^>]*>(.*?)</tr>", java.util.regex.Pattern.DOTALL).matcher(tableContent)
+
+        val result = mutableListOf<ChannelItem>()
+        val palette = listOf("#00E676", "#FF5722", "#AB47BC", "#FFCA28", "#66BB6A", "#42A5F5", "#7E57C2", "#FFA726", "#EC407A", "#26C6DA")
+        var colorIdx = 0
+
+        while (rowMatcher.find()) {
+            val row = rowMatcher.group(1) ?: continue
+            val roomMatch = java.util.regex.Pattern.compile("href=[\"']/r/([^\"']+)[\"']").matcher(row)
+            if (!roomMatch.find()) continue
+
+            val room = roomMatch.group(1)?.trim().orEmpty()
+            if (room.isBlank()) continue
+
+            val colMatcher = java.util.regex.Pattern.compile("<td[^>]*>(.*?)</td>", java.util.regex.Pattern.DOTALL).matcher(row)
+            val cols = mutableListOf<String>()
+            while (colMatcher.find()) {
+                cols.add(colMatcher.group(1).orEmpty())
+            }
+            if (cols.isEmpty()) continue
+
+            var titleRaw = cols[0].replace(Regex("<[^>]+>"), " ").trim()
+            titleRaw = unescapeHtml(titleRaw)
+            val cleanTitle = titleRaw.replace(Regex("\\s*\\(" + java.util.regex.Pattern.quote(room) + "\\)$"), "").trim()
+
+            var userCount = 0
+            if (cols.size > 1) {
+                val uStr = cols[1].replace(Regex("<[^>]+>"), "").trim()
+                userCount = uStr.toIntOrNull() ?: 0
+            }
+
+            var nowPlaying = ""
+            if (cols.size > 2) {
+                nowPlaying = unescapeHtml(cols[2].replace(Regex("<[^>]+>"), "").trim())
+            }
+
+            val isKryten = room.equals("420Grindhouse", ignoreCase = true)
+            val color = palette[colorIdx % palette.size]
+            colorIdx++
+
+            val desc = if (nowPlaying.isNotBlank()) "Now: $nowPlaying" else "cytu.be/r/$room"
+
+            result.add(
+                ChannelItem(
+                    id = room,
+                    displayName = if (cleanTitle.isNotBlank()) cleanTitle else room,
+                    serverUrl = "https://cytu.be",
+                    roomName = room,
+                    description = desc,
+                    badgeColorHex = color,
+                    isCustom = false,
+                    hasKrytenQueue = isKryten,
+                    userCount = userCount,
+                    nowPlaying = nowPlaying
+                )
+            )
+        }
+        return result
+    }
+
+    private fun unescapeHtml(text: String): String {
+        return text
+            .replace("&amp;", "&")
+            .replace("&quot;", "\"")
+            .replace("&#39;", "'")
+            .replace("&apos;", "'")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&#32;", " ")
+            .replace("&nbsp;", " ")
+    }
 }
+

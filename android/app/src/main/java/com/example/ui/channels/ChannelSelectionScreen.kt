@@ -129,7 +129,7 @@ fun ChannelSelectionScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "M&F CyTube TV",
+                            text = "Unofficial CyTube App",
                             style = TextStyle(
                                 color = PureWhite,
                                 fontWeight = FontWeight.ExtraBold,
@@ -407,6 +407,22 @@ fun ChannelCard(
                             contentDescription = "Delete",
                             tint = AccentVibrantOrange.copy(alpha = 0.8f),
                             modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else if (channel.userCount > 0) {
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFF00E676).copy(alpha = 0.18f), RoundedCornerShape(6.dp))
+                            .border(1.dp, Color(0xFF00E676).copy(alpha = 0.4f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 7.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "👥 ${channel.userCount}",
+                            style = TextStyle(
+                                color = Color(0xFF00FF88),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp
+                            )
                         )
                     }
                 } else if (isSelected) {
