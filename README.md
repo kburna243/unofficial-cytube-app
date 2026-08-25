@@ -30,18 +30,8 @@ Created by **Mike & Fried** — built by fans, for fans.
   Switch channels seamlessly during live playback using **D-Pad ▲ (UP) / ▼ (DOWN)**. An animated OSD HUD banner reveals the new channel, badge color, and current movie title.
 * **➕ Custom Room Support:**  
   Easily add, manage, and delete any custom CyTube channel (e.g. `cytu.be/r/your-room`) directly on your TV.
-* **🍿 Built-in Popular Presets:**  
-  Comes pre-configured with top community channels:
-  * **420 Grindhouse** (`420Grindhouse`)
-  * **The Kinoplex** (`The-Kinoplex`)
-  * **Spooky Movie Night** (`spookymovienight`)
-  * **Sneed TV** (`sneedtv`)
-  * **vidya4chan** (`v4c`)
-  * **American Dad 24/7** (`American-Dad`)
-  * **Spooky Vision** (`spookyvision`)
-  * **Always Sunny in Philadelphia** (`always_always_sunny`)
-  * **Afterparty** (`afterparty`)
-  * **South Park 24/7** (`South-Park-Show`)
+* **🌐 Live Public Directory & Smart Presets:**  
+  Automatically synchronizes with live public channels from [cytu.be](https://cytu.be/) on startup, with **420 Grindhouse** (`420Grindhouse`) as the default home channel.
 * **🎥 Hybrid Playback Engine:**  
   Powered by **AndroidX Media3 ExoPlayer** for direct streams (HLS `.m3u8`, MP4, Google Drive) and hardware-accelerated WebView surfaces for YouTube and web media.
 * **💬 Native Subtitle Chat Ticker:**  

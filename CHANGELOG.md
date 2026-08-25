@@ -1,6 +1,23 @@
 # 📜 Changelog
 
-All notable changes to the **Mikes 420 Grindhouse App** suite are documented in this file.
+All notable changes to the **Unofficial CyTube App** are documented in this file.
+
+---
+
+## [v1.2.0] (2026-08-24)
+### 🌟 Added & Improved
+- **Dynamic Channel Name Overlays:** All on-screen displays, queue headers, and metadata overlays dynamically reflect the active CyTube channel name instead of hardcoded channel strings.
+- **Updated Screenshots & Assets:** Refreshed documentation and application screenshots reflecting the new neutral design, live channel cards, and zap HUD.
+- **Exit Dialog & UI Polish:** Updated application exit confirmation and dialogs to "Unofficial CyTube App".
+
+---
+
+## [v1.1.0] (2026-08-24)
+### 📺 Added & Optimized
+- **Live CyTube Directory Scraping:** Automatically fetches and updates the public channel directory on startup directly from [cytu.be](https://cytu.be/) with live viewer counts and now-playing metadata.
+- **Dynamic D-Pad Channel Zapping:** Zap seamlessly up and down across all live public CyTube rooms.
+- **Leanback Android TV & Fire TV Mode:** Enforced `android.software.leanback` for proper native TV categorization and 16:9 banner display on Fire TV / Android TV launchers.
+- **Branding & Visuals:** Complete visual overhaul with new CyTube neon logo, dark-tech retro aesthetic, and smooth CRT progress capsule bar.
 
 ---
 
