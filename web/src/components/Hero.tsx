@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ChevronDown, Github } from 'lucide-react'
+import genreSplash from '../assets/genre-splash.webp'
+import appLogo from '../assets/cytube-app-logo.webp'
 
 export default function Hero() {
   const bgRef = useRef<HTMLDivElement>(null)
@@ -50,7 +52,7 @@ export default function Hero() {
       {/* Hintergrund: Genre-Splash */}
       <div ref={bgRef} className="absolute inset-[-6%] will-change-transform">
         <img
-          src="/assets/genre-splash.webp"
+          src={genreSplash}
           alt=""
           className="h-full w-full object-cover opacity-60"
           draggable={false}
@@ -74,7 +76,7 @@ export default function Hero() {
 
         <img
           ref={logoRef}
-          src="/assets/cytube-app-logo.webp"
+          src={appLogo}
           alt="CyTube App"
           className="flicker w-[min(80vw,640px)] select-none will-change-transform"
           style={{

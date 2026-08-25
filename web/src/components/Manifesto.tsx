@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import genreSplash from '../assets/genre-splash.webp'
 
 const WORDS = 'Grab your remote, dim the lights, and see what is playing on CyTube tonight.'.split(' ')
 
@@ -27,7 +28,7 @@ export default function Manifesto() {
       <div
         className="absolute inset-0 opacity-[0.13]"
         style={{
-          backgroundImage: 'url(/assets/genre-splash.webp)',
+          backgroundImage: `url(${genreSplash})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

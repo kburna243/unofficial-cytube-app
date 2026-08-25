@@ -1,4 +1,5 @@
 import { Github, Heart } from 'lucide-react'
+import appLogo from '../assets/cytube-app-logo.webp'
 
 export default function Footer() {
   return (
@@ -7,7 +8,7 @@ export default function Footer() {
         <div className="flex flex-col items-center gap-10 md:flex-row md:items-start md:justify-between">
           <div className="max-w-sm text-center md:text-left">
             <img
-              src="/assets/cytube-app-logo.webp"
+              src={appLogo}
               alt="CyTube App"
               className="mx-auto w-44 md:mx-0"
               style={{ filter: 'drop-shadow(0 0 14px rgba(255,45,149,0.4))' }}

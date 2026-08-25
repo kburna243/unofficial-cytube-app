@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ChevronDown, ChevronRight, ChevronUp, Info, ListVideo } from 'lucide-react'
+import genreSplash from '../assets/genre-splash.webp'
 
 interface Channel {
   name: string
@@ -223,7 +224,7 @@ export default function Zapper() {
             key={channelIdx}
             className="absolute inset-0 transition-all duration-300"
             style={{
-              backgroundImage: 'url(/assets/genre-splash.webp)',
+              backgroundImage: `url(${genreSplash})`,
               backgroundSize: '300% auto',
               backgroundPosition: channel.bgPos,
               filter: 'brightness(0.72) saturate(1.25)',

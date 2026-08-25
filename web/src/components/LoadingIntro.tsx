@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
+import loadingBar from '../assets/loading-bar.webp'
 
 const BOOT_LINES = [
   'REWINDING VHS TAPE …',
@@ -43,7 +44,7 @@ export default function LoadingIntro({ onDone }: { onDone: () => void }) {
       <div className="relative w-[min(92vw,900px)]">
         {/* Loading-Bar Asset */}
         <img
-          src="/assets/loading-bar.webp"
+          src={loadingBar}
           alt="Loading"
           className="w-full select-none"
           draggable={false}

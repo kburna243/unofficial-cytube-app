@@ -1,4 +1,5 @@
 import Reveal from './Reveal'
+import genreSplash from '../assets/genre-splash.webp'
 
 export interface Genre {
   name: string
@@ -45,7 +46,7 @@ export default function Genres() {
         </p>
       </Reveal>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 md:gap-6">
         {GENRES.map((g, i) => (
           <Reveal key={g.name} delay={i * 70}>
             <button
@@ -57,7 +58,7 @@ export default function Genres() {
               <div
                 className="absolute inset-0 transition-transform duration-500 group-hover:scale-110"
                 style={{
-                  backgroundImage: 'url(/assets/genre-splash.webp)',
+                  backgroundImage: `url(${genreSplash})`,
                   backgroundSize: '420% auto',
                   backgroundPosition: g.bgPos,
                 }}
