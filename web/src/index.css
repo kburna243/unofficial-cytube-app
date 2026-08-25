@@ -1,0 +1,299 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 280 30% 3%;
+    --foreground: 0 0% 96%;
+    --card: 280 25% 6%;
+    --card-foreground: 0 0% 96%;
+    --popover: 280 25% 6%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 330 100% 59%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 280 60% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 280 20% 14%;
+    --muted-foreground: 280 10% 62%;
+    --accent: 110 100% 54%;
+    --accent-foreground: 0 0% 5%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 300 30% 18%;
+    --input: 300 30% 18%;
+    --ring: 330 100% 59%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: #06030a;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: #ff2d95;
+    color: #fff;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0512;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ff2d95, #8b2fff);
+    border-radius: 8px;
+  }
+}
+
+/* ---------- Typography helpers ---------- */
+.font-display {
+  font-family: 'Bungee', cursive;
+}
+.font-crt {
+  font-family: 'VT323', monospace;
+}
+
+/* ---------- Neon text ---------- */
+.neon-pink {
+  color: #ff2d95;
+  text-shadow:
+    0 0 8px rgba(255, 45, 149, 0.9),
+    0 0 24px rgba(255, 45, 149, 0.55),
+    0 0 64px rgba(255, 45, 149, 0.35);
+}
+.neon-green {
+  color: #39ff14;
+  text-shadow:
+    0 0 8px rgba(57, 255, 20, 0.9),
+    0 0 24px rgba(57, 255, 20, 0.5),
+    0 0 64px rgba(57, 255, 20, 0.3);
+}
+.neon-purple {
+  color: #b565ff;
+  text-shadow:
+    0 0 8px rgba(139, 47, 255, 0.9),
+    0 0 28px rgba(139, 47, 255, 0.55),
+    0 0 72px rgba(139, 47, 255, 0.35);
+}
+
+/* ---------- Neon flicker (broken sign) ---------- */
+@keyframes neonFlicker {
+  0%, 100% { opacity: 1; }
+  3% { opacity: 0.4; }
+  5% { opacity: 1; }
+  7% { opacity: 0.2; }
+  9% { opacity: 1; }
+  42% { opacity: 1; }
+  44% { opacity: 0.6; }
+  46% { opacity: 1; }
+  78% { opacity: 1; }
+  80% { opacity: 0.35; }
+  82% { opacity: 1; }
+}
+.flicker {
+  animation: neonFlicker 6s linear infinite;
+}
+.flicker-slow {
+  animation: neonFlicker 9s linear infinite;
+  animation-delay: 2s;
+}
+
+/* ---------- Scanlines & grain ---------- */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.28) 3px,
+    rgba(0, 0, 0, 0.28) 4px
+  );
+  mix-blend-mode: multiply;
+  z-index: 5;
+}
+.grain-overlay {
+  position: fixed;
+  inset: -100%;
+  pointer-events: none;
+  z-index: 90;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grainShift 0.9s steps(4) infinite;
+}
+@keyframes grainShift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2%, 3%); }
+  50% { transform: translate(3%, -2%); }
+  75% { transform: translate(-3%, -3%); }
+  100% { transform: translate(2%, 2%); }
+}
+
+/* CRT vignette */
+.crt-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 89;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* ---------- Marquee ---------- */
+@keyframes marqueeX {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeX 28s linear infinite;
+}
+.marquee-track.reverse {
+  animation-direction: reverse;
+}
+
+/* ---------- Glitch heading ---------- */
+.glitch {
+  position: relative;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.glitch::before {
+  color: #39ff14;
+  z-index: -1;
+  animation: glitchShiftA 3.2s steps(2) infinite;
+}
+.glitch::after {
+  color: #ff2d95;
+  z-index: -2;
+  animation: glitchShiftB 2.7s steps(2) infinite;
+}
+@keyframes glitchShiftA {
+  0%, 92%, 100% { transform: translate(0, 0); opacity: 0; }
+  93% { transform: translate(-4px, 2px); opacity: 0.8; }
+  96% { transform: translate(3px, -2px); opacity: 0.8; }
+}
+@keyframes glitchShiftB {
+  0%, 90%, 100% { transform: translate(0, 0); opacity: 0; }
+  91% { transform: translate(4px, -1px); opacity: 0.8; }
+  95% { transform: translate(-3px, 2px); opacity: 0.8; }
+}
+
+/* ---------- VHS tracking bar ---------- */
+@keyframes trackingBar {
+  0% { top: -10%; opacity: 0; }
+  8% { opacity: 1; }
+  45% { top: 110%; opacity: 0; }
+  100% { top: 110%; opacity: 0; }
+}
+.tracking-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.06),
+    rgba(139, 47, 255, 0.12),
+    transparent
+  );
+  pointer-events: none;
+  animation: trackingBar 7s linear infinite;
+  z-index: 6;
+}
+
+/* ---------- Static noise (channel zap) ---------- */
+.static-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* ---------- Pulsing LIVE dot ---------- */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 12px rgba(255, 45, 80, 0.9); }
+  50% { opacity: 0.35; box-shadow: 0 0 4px rgba(255, 45, 80, 0.4); }
+}
+.live-dot {
+  animation: livePulse 1.4s ease-in-out infinite;
+}
+
+/* ---------- Chat ticker ---------- */
+@keyframes tickerScroll {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+
+/* ---------- Chromatic hover for cards ---------- */
+.chroma {
+  transition: text-shadow 0.25s ease, transform 0.25s ease;
+}
+.group:hover .chroma {
+  text-shadow:
+    -3px 0 rgba(57, 255, 20, 0.8),
+    3px 0 rgba(255, 45, 149, 0.8),
+    0 0 24px rgba(255, 255, 255, 0.25);
+}
+
+/* ---------- Scroll hint ---------- */
+@keyframes scrollHint {
+  0%, 100% { transform: translateY(0); opacity: 0.9; }
+  50% { transform: translateY(10px); opacity: 0.4; }
+}
+.scroll-hint {
+  animation: scrollHint 1.8s ease-in-out infinite;
+}
+
+/* ---------- Scroll reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(56px);
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Manifesto-Wörter */
+.mw {
+  opacity: 0.12;
+  transition: opacity 0.5s ease;
+}
+.mw-on {
+  opacity: 1;
+}
+
+/* ---------- D-pad buttons ---------- */
+.dpad-btn {
+  @apply flex items-center justify-center rounded-xl border border-fuchsia-500/40 bg-fuchsia-950/40 text-fuchsia-200 transition-all duration-150;
+  box-shadow: 0 0 0 rgba(255, 45, 149, 0);
+}
+.dpad-btn:hover {
+  @apply border-fuchsia-400 bg-fuchsia-900/60 text-white;
+  box-shadow: 0 0 24px rgba(255, 45, 149, 0.45);
+}
+.dpad-btn:active {
+  transform: scale(0.92);
+}

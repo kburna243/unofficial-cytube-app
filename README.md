@@ -4,6 +4,7 @@
   <p><strong>Universal Multi-Channel Client for <a href="https://cytu.be">CyTube</a> on Android TV & Fire TV</strong></p>
 
   [![Latest Release](https://img.shields.io/github/v/release/kburna243/unofficial-cytube-app?style=for-the-badge&color=8A2BE2)](https://github.com/kburna243/unofficial-cytube-app/releases/latest)
+  [![Live Website](https://img.shields.io/badge/Website-kburna243.github.io%2Funofficial--cytube--app-ff2d95?style=for-the-badge&logo=googlechrome&logoColor=white)](https://kburna243.github.io/unofficial-cytube-app/)
   [![Platform - Android](https://img.shields.io/badge/Platform-Android%20TV%20%7C%20Fire%20TV-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/kburna243/unofficial-cytube-app/releases)
   [![License](https://img.shields.io/badge/License-GPL%20v3-blue?style=for-the-badge)](LICENSE)
 </div>
@@ -77,12 +78,19 @@ Created by **Mike & Fried** — built by fans, for fans.
 
 ---
 
+## 🌐 Official Web Showcase & Hommage
+
+Experience the interactive retro web experience for **Unofficial CyTube App**:
+👉 **[kburna243.github.io/unofficial-cytube-app](https://kburna243.github.io/unofficial-cytube-app/)**
+
+---
+
 ## 📥 Installation
 
 1. Download the latest release from [Releases](https://github.com/kburna243/unofficial-cytube-app/releases/latest):
-   * **Fire TV & Android TV:** `cytube-tv-light.apk`
-   * **Smartphones & Tablets:** `cytube-tv-full.apk`
-2. Sideload onto your Fire TV / Android TV using **Downloader**, **adbLink**, or `adb install -r cytube-tv-light.apk`.
+   * **Fire TV & Android TV:** `unofficial-cytube-tv.apk`
+   * **Smartphones & Tablets:** `unofficial-cytube-full.apk`
+2. Sideload onto your Fire TV / Android TV using **Downloader**, **adbLink**, or `adb install -r unofficial-cytube-tv.apk`.
 3. Launch **Unofficial CyTube TV**, pick your favorite channel, and enjoy!
 
 ---
