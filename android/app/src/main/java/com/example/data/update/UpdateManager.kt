@@ -38,7 +38,7 @@ class UpdateManager(private val context: Context) {
      * im DNS nicht und hat nur einen Timeout gekostet.
      */
     private val versionEndpoints = listOf(
-        "https://raw.githubusercontent.com/kburna243/channel-z-app/main/version.json"
+        "https://raw.githubusercontent.com/kburna243/unofficial-cytube-app/main/version.json"
     )
 
     /**

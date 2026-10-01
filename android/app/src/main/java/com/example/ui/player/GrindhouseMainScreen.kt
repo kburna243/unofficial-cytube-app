@@ -168,15 +168,6 @@ fun GrindhouseMainScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MidnightCanvas)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) {
-                viewModel.onRemoteActivity()
-                if (!isTv) {
-                    showTouchControls = !showTouchControls
-                }
-            }
             .testTag("grindhouse_main_screen")
     ) {
         if (showSplashScreen) {

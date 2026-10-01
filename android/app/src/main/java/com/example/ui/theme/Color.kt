@@ -20,59 +20,59 @@ import androidx.compose.ui.graphics.Color
  */
 
 // ------------------------------------------------------------------ Flaechen
-var MidnightCanvas by mutableStateOf(Color(0xFF0B0813))
+var MidnightCanvas by mutableStateOf(Color(0xFF15121D))
     private set
-var SurfaceDark by mutableStateOf(Color(0xFF161124))
+var SurfaceDark by mutableStateOf(Color(0xFF1D1A26))
     private set
-var SurfaceCard by mutableStateOf(Color(0xFF1E1830))
+var SurfaceCard by mutableStateOf(Color(0xFF211E2A))
     private set
-/** Fokussierte Kachel. Zieht zur Markenfarbe: der alte Wert lag 1,15:1 neben der
- *  ruhenden Kachel und war am Fernseher nicht als Fokus zu erkennen. */
-var CardFocusedSurface by mutableStateOf(Color(0xFF4F3085))
+/** Fokussierte Kachel. Zieht zur Markenfarbe: tiefer Violettton mit Neon-Glow. */
+var CardFocusedSurface by mutableStateOf(Color(0xFF2C1E4A))
     private set
 
 // ------------------------------------------------------------------ Akzente
 /**
- * Historischer Name: dies ist der Hauptakzent — aktive Schalter, Fokusrahmen, Buttons.
- * Er traegt haeufig schwarzen Text, muss also in jeder Palette hell genug bleiben.
+ * Hauptakzent — Neon-Violett / Electric Amethyst (#9D65FF / #D4BBFF).
  */
 var AccentIceBlue by mutableStateOf(Color(0xFF9D65FF))
     private set
 
-/** Markenfarbe (dunkler als der Akzent), fuer Logo, Systemzeilen und aktive Menuepunkte. */
-var AccentVibrantOrange by mutableStateOf(Color(0xFF633AA8))
+/** Markenfarbe (#A675FF / #633AA8), fuer Logo, Systemzeilen und aktive Menuepunkte. */
+var AccentVibrantOrange by mutableStateOf(Color(0xFFA675FF))
     private set
-var AccentPurple by mutableStateOf(Color(0xFF633AA8))
+var AccentPurple by mutableStateOf(Color(0xFFA675FF))
     private set
-var AccentLavender by mutableStateOf(Color(0xFFC4A8FF))
+var AccentLavender by mutableStateOf(Color(0xFFD4BBFF))
     private set
-var AccentDeepViolet by mutableStateOf(Color(0xFF4B2C85))
+var AccentDeepViolet by mutableStateOf(Color(0xFF4F3085))
     private set
 
 // Bleiben ueber alle Paletten gleich: sie unterscheiden Chat-Teilnehmer voneinander und
 // duerfen dabei nicht mit der Markenfarbe verschmelzen.
-val AccentCoral = Color(0xFFFF8A8A)
+val AccentCoral = Color(0xFFFF4A8D)
 val AccentAmber = Color(0xFFFFB300)
+val AccentNeonPink = Color(0xFFFF4A8D)
+val AccentNeonGreen = Color(0xFF00E639)
 
 // ------------------------------------------------------------------ Text
-var PureWhite by mutableStateOf(Color(0xFFF5F3F7))
+var PureWhite by mutableStateOf(Color(0xFFE7DFF0))
     private set
-var TextSubtitleWhite by mutableStateOf(Color(0xFFF5F3F7))
+var TextSubtitleWhite by mutableStateOf(Color(0xFFFFFFFF))
     private set
-var TextMuted by mutableStateOf(Color(0xFF9A93A8))
+var TextMuted by mutableStateOf(Color(0xFFCCC3D6))
     private set
 
 // ------------------------------------------------------------------ Fokus & Rahmen
 var FocusGlowIceBlue by mutableStateOf(Color(0xFF9D65FF))
     private set
-var FocusBorderRing by mutableStateOf(Color(0xFFC4A8FF))
+var FocusBorderRing by mutableStateOf(Color(0xFFD4BBFF))
     private set
 val SubtleBorder = Color(0x26FFFFFF)
 
 // ------------------------------------------------------------------ Status
-// Bedeutungstragend (verbunden / verbindet / getrennt) und deshalb bewusst themenunabhaengig.
-val StatusLiveGreen = Color(0xFF4ADE80)
-val StatusLiveGreenBg = Color(0x334ADE80)
+// Matrix Neon-Grün (#00E639) fuer Live-Indikator, aktive Auswahl und Fortschritt
+val StatusLiveGreen = Color(0xFF00E639)
+val StatusLiveGreenBg = Color(0x3300E639)
 val StatusReconnectingYellow = Color(0xFFFBBF24)
 val StatusOfflineRed = Color(0xFFF87171)
 val StatusIdleBlue = Color(0xFF60A5FA)
@@ -80,7 +80,7 @@ val StatusIdleBlue = Color(0xFF60A5FA)
 // Klassische CyTube-Palette fuer die Chat-Namen (Alternative zur Grindhouse-Darstellung)
 val ClassicCyan = Color(0xFF1E90FF)
 val ClassicOrange = Color(0xFFFF4500)
-val ClassicGreen = Color(0xFF2ECC71)
+val ClassicGreen = Color(0xFF00E639)
 val ClassicAmber = Color(0xFFF39C12)
 val ClassicSystem = Color(0xFFFFB300)
 
@@ -100,26 +100,22 @@ data class ThemePalette(
 )
 
 /**
- * Die vier waehlbaren Themen. Reihenfolge = Reihenfolge im Menue, das erste ist die Vorgabe.
- *
- * Alle drei neuen Paletten setzen auf tiefe, rauchige Violetttoene statt greller Neonfarben:
- * Filmplakate und Vorschaubilder sollen aus dem Hintergrund herausleuchten, nicht mit ihm
- * konkurrieren. Reines Schwarz kommt bewusst nirgends vor, es laesst Violett schmutzig wirken.
+ * Die vier waehlbaren Themen. Vorgabe: Grindhouse Neon.
  */
 val Palettes = listOf(
-    // "The Cinematic Deep" — fast schwarzes Violett, damit Poster herausstechen.
+    // "Grindhouse Neon" — Tiefe obsidian-violette Basis mit leuchtenden Neon-Akzenten
     ThemePalette(
         id = "cinematic",
-        background = Color(0xFF0B0813),   // Midnight Obsidian
-        surface = Color(0xFF161124),      // Deep Iris
-        surfaceCard = Color(0xFF1E1830),
-        cardFocused = Color(0xFF4F3085),
-        accent = Color(0xFF9D65FF),       // Electric Amethyst
-        brand = Color(0xFF633AA8),        // Regal Violet
-        lavender = Color(0xFFC4A8FF),
-        deepViolet = Color(0xFF4B2C85),
-        textPrimary = Color(0xFFF5F3F7),  // Crisp Silk
-        textMuted = Color(0xFF9A93A8)
+        background = Color(0xFF15121D),   // Surface
+        surface = Color(0xFF1D1A26),      // Surface Container Low
+        surfaceCard = Color(0xFF211E2A),  // Surface Container
+        cardFocused = Color(0xFF2C1E4A),  // Focused Card
+        accent = Color(0xFF9D65FF),       // Primary Electric Amethyst
+        brand = Color(0xFFA675FF),        // Primary Container
+        lavender = Color(0xFFD4BBFF),     // Surface Tint / Lavender
+        deepViolet = Color(0xFF4F3085),   // Focused Violet
+        textPrimary = Color(0xFFE7DFF0),  // On-Surface
+        textMuted = Color(0xFFCCC3D6)     // On-Surface-Variant
     ),
     // "Premium Cyber Punk" — kraeftiger und kaelter, fuer Live-Events und Clips.
     ThemePalette(

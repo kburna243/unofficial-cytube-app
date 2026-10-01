@@ -152,8 +152,8 @@
     <string name="details_episode_short">Ep. %1$d</string>
     <!-- Farbthemen -->
     <string name="settings_theme">Colour Theme</string>
-    <string name="theme_cinematic">The Cinematic Deep</string>
-    <string name="theme_cinematic_sub">Near-black violet — posters and thumbnails stand out</string>
+    <string name="theme_cinematic">Grindhouse Neon</string>
+    <string name="theme_cinematic_sub">Deep obsidian violet with electric amethyst and matrix green</string>
     <string name="theme_cyberpunk">Premium Cyber Punk</string>
     <string name="theme_cyberpunk_sub">Bold and cool — for live events and clips</string>
     <string name="theme_editorial">Mystic Editorial</string>

@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -62,10 +63,10 @@ fun ChannelZapBanner(
                 contentAlignment = Alignment.TopCenter
             ) {
                 Surface(
-                    color = SurfaceDark.copy(alpha = 0.92f),
-                    shape = RoundedCornerShape(14.dp),
+                    color = SurfaceDark.copy(alpha = 0.94f),
+                    shape = RoundedCornerShape(16.dp),
                     border = BorderStroke(1.5.dp, badgeColor),
-                    shadowElevation = 24.dp,
+                    shadowElevation = 32.dp,
                     modifier = Modifier
                         .wrapContentWidth()
                         .padding(horizontal = 24.dp)
@@ -76,15 +77,16 @@ fun ChannelZapBanner(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
-                                .background(badgeColor.copy(alpha = 0.25f), RoundedCornerShape(8.dp)),
+                                .size(40.dp)
+                                .background(badgeColor.copy(alpha = 0.20f), RoundedCornerShape(10.dp))
+                                .border(1.dp, badgeColor.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.LiveTv,
                                 contentDescription = null,
                                 tint = badgeColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
 
@@ -110,6 +112,23 @@ fun ChannelZapBanner(
                                         fontFamily = FontFamily.Monospace
                                     )
                                 )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .background(com.example.ui.theme.StatusLiveGreen.copy(alpha = 0.18f), RoundedCornerShape(6.dp))
+                                        .border(1.dp, com.example.ui.theme.StatusLiveGreen.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "LIVE",
+                                        style = TextStyle(
+                                            color = com.example.ui.theme.StatusLiveGreen,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 9.sp,
+                                            letterSpacing = 1.sp
+                                        )
+                                    )
+                                }
                             }
 
                             if (!nowPlayingTitle.isNullOrBlank()) {

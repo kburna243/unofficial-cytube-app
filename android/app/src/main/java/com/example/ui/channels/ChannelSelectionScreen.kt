@@ -39,11 +39,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.onGloballyPositioned
 import com.example.data.model.ChannelItem
+import com.example.ui.theme.AccentCoral
+import com.example.ui.theme.AccentIceBlue
 import com.example.ui.theme.AccentLavender
 import com.example.ui.theme.AccentPurple
 import com.example.ui.theme.AccentVibrantOrange
+import com.example.ui.theme.MidnightCanvas
 import com.example.ui.theme.PureWhite
+import com.example.ui.theme.StatusLiveGreen
 import com.example.ui.theme.SubtleBorder
 import com.example.ui.theme.SurfaceCard
 import com.example.ui.theme.SurfaceDark
@@ -62,22 +72,27 @@ fun ChannelSelectionScreen(
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
 
-    // Auto-focus the first channel card on TV startup so D-Pad is immediately responsive
+    val resumeFocusRequester = remember { FocusRequester() }
     val focusRequesters = remember(channels.size) {
-        List(channels.size + 2) { FocusRequester() }
+        List(channels.size + 4) { FocusRequester() }
     }
 
-    LaunchedEffect(channels) {
-        delay(120)
-        val selectedIdx = channels.indexOfFirst {
-            it.roomName.equals(currentChannel?.roomName, ignoreCase = true)
-        }.let { if (it >= 0) it else 0 }
-        
-        if (selectedIdx in focusRequesters.indices) {
+    LaunchedEffect(Unit) {
+        var focused = false
+        var attempts = 0
+        while (!focused && attempts < 25) {
+            delay(100)
+            attempts++
             try {
-                focusRequesters[selectedIdx].requestFocus()
-            } catch (e: Exception) {
-                // Focus fallback
+                if (currentChannel != null) {
+                    resumeFocusRequester.requestFocus()
+                    focused = true
+                } else if (focusRequesters.isNotEmpty()) {
+                    focusRequesters[0].requestFocus()
+                    focused = true
+                }
+            } catch (_: Exception) {
+                // Retry until layout attachment
             }
         }
     }
@@ -85,15 +100,7 @@ fun ChannelSelectionScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0D0B14),
-                        Color(0xFF140D1F),
-                        Color(0xFF08060B)
-                    )
-                )
-            )
+            .background(MidnightCanvas)
             .padding(horizontal = 44.dp, vertical = 28.dp)
             .testTag("channel_selection_screen")
     ) {
@@ -113,10 +120,11 @@ fun ChannelSelectionScreen(
                             .size(52.dp)
                             .background(
                                 Brush.linearGradient(
-                                    listOf(Color(0xFF8A2BE2), Color(0xFFE040FB))
+                                    listOf(Color(0xFF9D65FF), Color(0xFFA675FF))
                                 ),
                                 RoundedCornerShape(14.dp)
-                            ),
+                            )
+                            .border(1.5.dp, Color(0xFFD4BBFF), RoundedCornerShape(14.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -129,7 +137,7 @@ fun ChannelSelectionScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = "Unofficial CyTube App",
+                            text = "CYTUBE TV",
                             style = TextStyle(
                                 color = PureWhite,
                                 fontWeight = FontWeight.ExtraBold,
@@ -138,7 +146,7 @@ fun ChannelSelectionScreen(
                             )
                         )
                         Text(
-                            text = "Select a channel • Zap with D-Pad ▲/▼ during playback",
+                            text = "Channel Selection Hub • Zap with D-Pad ▲/▼ during playback",
                             style = TextStyle(
                                 color = TextMuted,
                                 fontSize = 13.sp
@@ -158,18 +166,33 @@ fun ChannelSelectionScreen(
                         val isResumeFocused by resumeInteraction.collectIsFocusedAsState()
 
                         Surface(
-                            color = if (isResumeFocused) AccentPurple else Color(0xFF1E1430),
+                            color = if (isResumeFocused) AccentIceBlue else Color(0xFF1E1830),
                             shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, if (isResumeFocused) PureWhite else AccentLavender.copy(alpha = 0.5f)),
+                            border = BorderStroke(
+                                width = if (isResumeFocused) 2.5.dp else 1.5.dp,
+                                color = if (isResumeFocused) PureWhite else AccentIceBlue.copy(alpha = 0.6f)
+                            ),
                             modifier = Modifier
                                 .height(44.dp)
                                 .scale(if (isResumeFocused) 1.05f else 1.0f)
+                                .focusRequester(resumeFocusRequester)
+                                .focusable(interactionSource = resumeInteraction)
                                 .clickable(
                                     interactionSource = resumeInteraction,
                                     indication = null,
                                     onClick = { onSelectChannel(currentChannel) }
                                 )
-                                .focusable(interactionSource = resumeInteraction)
+                                .onKeyEvent { keyEvent ->
+                                    if (keyEvent.type == KeyEventType.KeyDown) {
+                                        when (keyEvent.key) {
+                                            Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                                                onSelectChannel(currentChannel)
+                                                true
+                                            }
+                                            else -> false
+                                        }
+                                    } else false
+                                }
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 14.dp),
@@ -178,15 +201,15 @@ fun ChannelSelectionScreen(
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
                                     contentDescription = null,
-                                    tint = PureWhite,
+                                    tint = if (isResumeFocused) Color.Black else StatusLiveGreen,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Watch ${currentChannel.displayName}",
                                     style = TextStyle(
-                                        color = PureWhite,
-                                        fontWeight = FontWeight.Bold,
+                                        color = if (isResumeFocused) Color.Black else PureWhite,
+                                        fontWeight = FontWeight.ExtraBold,
                                         fontSize = 13.sp
                                     )
                                 )
@@ -199,18 +222,32 @@ fun ChannelSelectionScreen(
                     val isAddFocused by addInteraction.collectIsFocusedAsState()
 
                     Surface(
-                        color = if (isAddFocused) AccentPurple else SurfaceCard,
+                        color = if (isAddFocused) AccentIceBlue else SurfaceCard,
                         shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(1.dp, if (isAddFocused) PureWhite else SubtleBorder),
+                        border = BorderStroke(
+                            width = if (isAddFocused) 2.5.dp else 1.5.dp,
+                            color = if (isAddFocused) PureWhite else Color.White.copy(alpha = 0.15f)
+                        ),
                         modifier = Modifier
                             .height(44.dp)
                             .scale(if (isAddFocused) 1.05f else 1.0f)
+                            .focusable(interactionSource = addInteraction)
                             .clickable(
                                 interactionSource = addInteraction,
                                 indication = null,
                                 onClick = { showAddDialog = true }
                             )
-                            .focusable(interactionSource = addInteraction)
+                            .onKeyEvent { keyEvent ->
+                                if (keyEvent.type == KeyEventType.KeyDown) {
+                                    when (keyEvent.key) {
+                                        Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                                            showAddDialog = true
+                                            true
+                                        }
+                                        else -> false
+                                    }
+                                } else false
+                            }
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 14.dp),
@@ -219,14 +256,14 @@ fun ChannelSelectionScreen(
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = null,
-                                tint = if (isAddFocused) PureWhite else AccentLavender,
+                                tint = if (isAddFocused) Color.Black else AccentLavender,
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "+ Add Channel",
                                 style = TextStyle(
-                                    color = if (isAddFocused) PureWhite else TextSubtitleWhite,
+                                    color = if (isAddFocused) Color.Black else PureWhite,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp
                                 )
@@ -313,37 +350,48 @@ fun ChannelCard(
         try {
             Color(android.graphics.Color.parseColor(channel.badgeColorHex))
         } catch (e: Exception) {
-            AccentPurple
+            AccentIceBlue
         }
     }
 
     Surface(
         color = when {
-            isFocused -> Color(0xFF221638)
-            isSelected -> Color(0xFF1E1430)
-            else -> SurfaceCard.copy(alpha = 0.85f)
+            isFocused -> Color(0xFF38235C)
+            isSelected -> Color(0xFF24163E)
+            else -> SurfaceCard.copy(alpha = 0.90f)
         },
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(
             width = if (isFocused) 2.5.dp else if (isSelected) 1.5.dp else 1.dp,
             color = when {
-                isFocused -> Color(0xFFE040FB)
-                isSelected -> AccentLavender.copy(alpha = 0.6f)
-                else -> SubtleBorder
+                isFocused -> PureWhite
+                isSelected -> AccentLavender.copy(alpha = 0.8f)
+                else -> Color.White.copy(alpha = 0.08f)
             }
         ),
-        shadowElevation = if (isFocused) 24.dp else 6.dp,
+        shadowElevation = if (isFocused) 32.dp else 4.dp,
         modifier = modifier
             .fillMaxWidth()
-            .height(160.dp)
-            .scale(if (isFocused) 1.05f else 1.0f)
+            .height(165.dp)
+            .scale(if (isFocused) 1.04f else 1.0f)
             .focusRequester(focusRequester)
+            .focusable(interactionSource = interactionSource)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onSelect
             )
-            .focusable(interactionSource = interactionSource)
+            .onKeyEvent { keyEvent ->
+                if (keyEvent.type == KeyEventType.KeyDown) {
+                    when (keyEvent.key) {
+                        Key.DirectionCenter, Key.Enter, Key.NumPadEnter -> {
+                            onSelect()
+                            true
+                        }
+                        else -> false
+                    }
+                } else false
+            }
     ) {
         Column(
             modifier = Modifier
@@ -362,7 +410,12 @@ fun ChannelCard(
                         modifier = Modifier
                             .size(38.dp)
                             .background(
-                                if (isFocused) Color(0xFFE040FB).copy(alpha = 0.3f) else badgeColor.copy(alpha = 0.25f),
+                                if (isFocused) AccentIceBlue.copy(alpha = 0.25f) else badgeColor.copy(alpha = 0.20f),
+                                RoundedCornerShape(10.dp)
+                            )
+                            .border(
+                                1.dp,
+                                if (isFocused) AccentIceBlue else badgeColor.copy(alpha = 0.4f),
                                 RoundedCornerShape(10.dp)
                             ),
                         contentAlignment = Alignment.Center
@@ -371,7 +424,7 @@ fun ChannelCard(
                             imageVector = Icons.Default.Tv,
                             contentDescription = null,
                             tint = if (isFocused) PureWhite else badgeColor,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
@@ -380,8 +433,9 @@ fun ChannelCard(
                             text = channel.displayName,
                             style = TextStyle(
                                 color = PureWhite,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 16.sp,
+                                letterSpacing = 0.5.sp
                             ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -389,7 +443,7 @@ fun ChannelCard(
                         Text(
                             text = "cytu.be/r/${channel.roomName}",
                             style = TextStyle(
-                                color = if (isFocused) Color(0xFFE040FB) else TextMuted,
+                                color = if (isFocused) AccentLavender else TextMuted,
                                 fontSize = 11.sp,
                                 fontFamily = FontFamily.Monospace
                             )
@@ -405,38 +459,48 @@ fun ChannelCard(
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete",
-                            tint = AccentVibrantOrange.copy(alpha = 0.8f),
+                            tint = AccentCoral.copy(alpha = 0.8f),
                             modifier = Modifier.size(16.dp)
                         )
                     }
                 } else if (channel.userCount > 0) {
                     Box(
                         modifier = Modifier
-                            .background(Color(0xFF00E676).copy(alpha = 0.18f), RoundedCornerShape(6.dp))
-                            .border(1.dp, Color(0xFF00E676).copy(alpha = 0.4f), RoundedCornerShape(6.dp))
-                            .padding(horizontal = 7.dp, vertical = 2.dp)
+                            .background(StatusLiveGreen.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
+                            .border(1.dp, StatusLiveGreen.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
-                        Text(
-                            text = "👥 ${channel.userCount}",
-                            style = TextStyle(
-                                color = Color(0xFF00FF88),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .background(StatusLiveGreen, CircleShape)
                             )
-                        )
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(
+                                text = "${channel.userCount} LIVE",
+                                style = TextStyle(
+                                    color = StatusLiveGreen,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 0.5.sp
+                                )
+                            )
+                        }
                     }
                 } else if (isSelected) {
                     Box(
                         modifier = Modifier
-                            .background(AccentPurple.copy(alpha = 0.4f), CircleShape)
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                            .background(AccentIceBlue.copy(alpha = 0.25f), RoundedCornerShape(8.dp))
+                            .border(1.dp, AccentIceBlue.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
-                            text = "LAST PLAYED",
+                            text = "ACTIVE",
                             style = TextStyle(
                                 color = AccentLavender,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 9.sp,
+                                fontSize = 10.sp,
                                 letterSpacing = 1.sp
                             )
                         )
@@ -448,7 +512,7 @@ fun ChannelCard(
             Text(
                 text = channel.description.ifBlank { "Live CyTube Community Room" },
                 style = TextStyle(
-                    color = if (isFocused) PureWhite else TextSubtitleWhite,
+                    color = if (isFocused) PureWhite else TextSubtitleWhite.copy(alpha = 0.85f),
                     fontSize = 12.sp,
                     lineHeight = 16.sp
                 ),
@@ -465,16 +529,17 @@ fun ChannelCard(
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = null,
-                    tint = if (isFocused) Color(0xFFE040FB) else TextMuted,
+                    tint = if (isFocused) StatusLiveGreen else TextMuted,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = if (isFocused) "Press OK to Watch Stream" else "Watch Stream",
+                    text = if (isFocused) "▶ PRESS OK TO WATCH" else "Watch Stream",
                     style = TextStyle(
-                        color = if (isFocused) Color(0xFFE040FB) else TextMuted,
+                        color = if (isFocused) StatusLiveGreen else TextMuted,
                         fontSize = 11.sp,
-                        fontWeight = if (isFocused) FontWeight.ExtraBold else FontWeight.Normal
+                        fontWeight = if (isFocused) FontWeight.ExtraBold else FontWeight.Normal,
+                        letterSpacing = if (isFocused) 0.5.sp else 0.sp
                     )
                 )
             }

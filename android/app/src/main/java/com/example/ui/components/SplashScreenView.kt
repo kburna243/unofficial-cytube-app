@@ -1,6 +1,5 @@
 package com.example.ui.components
 
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -11,6 +10,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,24 +32,61 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
+import com.example.ui.theme.AccentNeonGreen
+import com.example.ui.theme.AccentNeonPink
+import com.example.ui.theme.MidnightCanvas
+import com.example.ui.theme.PureWhite
+import com.example.ui.theme.StatusLiveGreen
 import kotlinx.coroutines.delay
 
 /**
- * Animated Retro Synthwave / Grindhouse Splash & Loading Screen.
- * Uses the composite artwork from splashscreen_combi.psd with an animated, filling neon progress bar.
+ * Hexagonal Capsule Shape for Grindhouse Neon progress indicator
+ * polygon(5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%, 0% 5%)
+ */
+class HexagonCapsuleShape(private val cornerFraction: Float = 0.05f) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val path = Path().apply {
+            val cutX = size.width * cornerFraction
+            val midY = size.height * 0.5f
+            moveTo(cutX, 0f)
+            lineTo(size.width - cutX, 0f)
+            lineTo(size.width, midY)
+            lineTo(size.width - cutX, size.height)
+            lineTo(cutX, size.height)
+            lineTo(0f, midY)
+            close()
+        }
+        return Outline.Generic(path)
+    }
+}
+
+/**
+ * Animated Grindhouse Neon Splash & Loading Screen.
+ * Implements the design from loading_screen_soft_background (hexagonal glowing frame,
+ * skewed matrix-green segments, pulsing neon logo and SYS_BOOT counter).
  */
 @Composable
 fun SplashScreenView(
@@ -56,66 +96,173 @@ fun SplashScreenView(
 
     val animatedProgress by animateFloatAsState(
         targetValue = if (startAnimation) 1.0f else 0.0f,
-        animationSpec = tween(durationMillis = 2600, easing = LinearEasing),
+        animationSpec = tween(durationMillis = 2400, easing = LinearEasing),
         label = "splashProgress"
     )
 
     LaunchedEffect(Unit) {
         startAnimation = true
-        delay(2900)
+        delay(2700)
         onFinished()
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A0E)),
+            .background(MidnightCanvas),
         contentAlignment = Alignment.Center
     ) {
-        // 1. Splash Screen Main Background Artwork (Characters + Neon Sign)
+        // 1. Splash Screen Main Background Artwork
         Image(
             painter = painterResource(id = R.drawable.splash_background),
             contentDescription = "CyTube App Splash Background",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            alpha = 0.65f
         )
 
-        // 2. CRT Television Scanlines Overlay
-        ScanlinesOverlay(modifier = Modifier.fillMaxSize())
-
-        // 3. Subtle Vignette
+        // 2. Soft Dark Vignette Overlay
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.25f),
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.65f)
+                            Color.Black.copy(alpha = 0.70f),
+                            Color.Black.copy(alpha = 0.30f),
+                            Color.Black.copy(alpha = 0.85f)
                         )
                     )
                 )
         )
 
-        // 4. Center Animated Loading Unit (Text + Filling Capsule Bar)
-        Box(
+        // 3. CRT Television Scanlines Overlay
+        ScanlinesOverlay(modifier = Modifier.fillMaxSize())
+
+        // 4. Moving Scanline Bar
+        ScanlineBarOverlay(modifier = Modifier.fillMaxSize())
+
+        // 5. Center Neon Boot Unit
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 44.dp, start = 24.dp, end = 24.dp),
-            contentAlignment = Alignment.BottomCenter
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            AnimatedRetroLoadingBar(
-                progress = animatedProgress,
-                modifier = Modifier.fillMaxWidth(0.58f)
+            // Pulsing CyTube App Logo
+            val infiniteTransition = rememberInfiniteTransition(label = "neonLogoPulse")
+            val logoScale by infiniteTransition.animateFloat(
+                initialValue = 0.96f,
+                targetValue = 1.04f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1200, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "logoScale"
             )
+            val logoAlpha by infiniteTransition.animateFloat(
+                initialValue = 0.85f,
+                targetValue = 1.0f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1200, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "logoAlpha"
+            )
+
+            Image(
+                painter = painterResource(id = R.drawable.splash_loading_text),
+                contentDescription = "CyTube Logo",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(135.dp)
+                    .drawBehind {
+                        // Ambient Neon Magenta Glow
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                colors = listOf(Color(0x99D800FF), Color.Transparent)
+                            ),
+                            radius = size.width * 0.65f,
+                            center = center
+                        )
+                    }
+                    .graphicsLayer {
+                        scaleX = logoScale
+                        scaleY = logoScale
+                        alpha = logoAlpha
+                    }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Subtitle: INITIALIZING NEON CORE...
+            val textFlickerAlpha by infiniteTransition.animateFloat(
+                initialValue = 0.75f,
+                targetValue = 1.0f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(350, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "textFlickerAlpha"
+            )
+
+            Text(
+                text = "INITIALIZING NEON CORE...",
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    color = StatusLiveGreen.copy(alpha = textFlickerAlpha),
+                    letterSpacing = 3.sp
+                )
+            )
+
+            Spacer(modifier = Modifier.height(22.dp))
+
+            // Hexagonal Progress Bar Unit
+            HexagonNeonProgressBar(
+                progress = animatedProgress,
+                modifier = Modifier
+                    .fillMaxWidth(0.50f)
+                    .height(44.dp)
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // SYS_BOOT: X% in Monospace Bold
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "SYS_BOOT: ",
+                    style = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = StatusLiveGreen,
+                        letterSpacing = 1.5.sp
+                    )
+                )
+                Text(
+                    text = "${(animatedProgress * 100).toInt()}%",
+                    style = TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 15.sp,
+                        color = StatusLiveGreen,
+                        letterSpacing = 1.5.sp
+                    )
+                )
+            }
         }
 
-        // 5. VCR Bottom Status Indicators
+        // 6. Bottom VCR Audio & Status Indicators
         Row(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 28.dp, bottom = 20.dp),
+                .padding(start = 36.dp, bottom = 24.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -125,11 +272,11 @@ fun SplashScreenView(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF00FF88).copy(alpha = 0.85f)
+                    color = StatusLiveGreen.copy(alpha = 0.9f)
                 )
             )
             Text(
-                text = "STEREO • HI-FI",
+                text = "STEREO • HI-FI // 24/7 SYNC",
                 style = TextStyle(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 12.sp,
@@ -137,6 +284,57 @@ fun SplashScreenView(
                     color = Color(0xFF00DDFF).copy(alpha = 0.75f)
                 )
             )
+        }
+    }
+}
+
+/**
+ * Custom Hexagonal Neon Progress Bar with skewed matrix green blocks
+ */
+@Composable
+fun HexagonNeonProgressBar(
+    progress: Float,
+    modifier: Modifier = Modifier
+) {
+    val borderColor = Color(0xFFD800FF)
+    val segmentColor = Color(0xFF00FF41)
+
+    Box(
+        modifier = modifier
+            .background(Color(0xE60A0612), RoundedCornerShape(10.dp))
+            .border(2.5.dp, borderColor, RoundedCornerShape(10.dp))
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val clampedProgress = progress.coerceIn(0f, 1f)
+            val fillWidth = size.width * clampedProgress
+            val segmentWidth = 18.dp.toPx()
+            val segmentSpacing = 5.dp.toPx()
+            val skewOffset = 8.dp.toPx()
+
+            clipRect(0f, 0f, fillWidth, size.height) {
+                var currentX = 0f
+                while (currentX < size.width + skewOffset) {
+                    val segmentPath = Path().apply {
+                        moveTo(currentX + skewOffset, 0f)
+                        lineTo(currentX + segmentWidth + skewOffset, 0f)
+                        lineTo(currentX + segmentWidth, size.height)
+                        lineTo(currentX, size.height)
+                        close()
+                    }
+                    drawPath(
+                        path = segmentPath,
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF85FF83),
+                                segmentColor,
+                                Color(0xFF00A827)
+                            )
+                        )
+                    )
+                    currentX += segmentWidth + segmentSpacing
+                }
+            }
         }
     }
 }
@@ -162,100 +360,38 @@ fun ScanlinesOverlay(modifier: Modifier = Modifier) {
 }
 
 /**
- * Animated Neon Progress Bar with filling segments and pulsing "LOADING..." header.
+ * Subtle moving scanline bar animation
  */
 @Composable
-fun AnimatedRetroLoadingBar(
-    progress: Float,
-    modifier: Modifier = Modifier
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "splashNeonPulse")
-
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.80f,
-        targetValue = 1.0f,
+fun ScanlineBarOverlay(modifier: Modifier = Modifier) {
+    val transition = rememberInfiniteTransition(label = "scanlineBar")
+    val yPos by transition.animateFloat(
+        initialValue = -0.1f,
+        targetValue = 1.1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(600, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
+            animation = tween(7000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
         ),
-        label = "pulseAlpha"
+        label = "yPos"
     )
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Neon "LOADING..." Graphic with gentle pulsing glow
-        Image(
-            painter = painterResource(id = R.drawable.splash_loading_text),
-            contentDescription = "Loading...",
-            modifier = Modifier.height(48.dp),
-            alpha = pulseAlpha
+    Canvas(modifier = modifier) {
+        val barHeight = 60.dp.toPx()
+        val currentY = size.height * yPos
+        drawRect(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    Color.Transparent,
+                    Color(0x1A9D65FF),
+                    Color(0x269D65FF),
+                    Color.Transparent
+                ),
+                startY = currentY,
+                endY = currentY + barHeight
+            ),
+            topLeft = Offset(0f, currentY),
+            size = Size(size.width, barHeight)
         )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Progress Capsule Bar
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(42.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            // A. Base Container / Frame
-            Image(
-                painter = painterResource(id = R.drawable.splash_capsule_frame),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier.fillMaxSize()
-            )
-
-            // B. Animated Green Segments Fill (Clipped by progress fraction)
-            Image(
-                painter = painterResource(id = R.drawable.splash_capsule_fill),
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .drawWithContent {
-                        val fillWidth = size.width * progress.coerceIn(0f, 1f)
-                        clipRect(0f, 0f, fillWidth, size.height) {
-                            this@drawWithContent.drawContent()
-                        }
-                    }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Monospace percentage counter & status
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "CYTUBE LIVE FEED // INITIALIZING",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFF55BB).copy(alpha = 0.9f),
-                    letterSpacing = 1.sp
-                )
-            )
-
-            Text(
-                text = "${(progress * 100).toInt()}%",
-                style = TextStyle(
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF00FF66),
-                    letterSpacing = 1.sp
-                )
-            )
-        }
     }
 }
 
@@ -267,5 +403,13 @@ fun ChannelZRetroLoadingBar(
     progress: Float,
     modifier: Modifier = Modifier
 ) {
-    AnimatedRetroLoadingBar(progress = progress, modifier = modifier)
+    HexagonNeonProgressBar(progress = progress, modifier = modifier)
+}
+
+@Composable
+fun AnimatedRetroLoadingBar(
+    progress: Float,
+    modifier: Modifier = Modifier
+) {
+    HexagonNeonProgressBar(progress = progress, modifier = modifier)
 }

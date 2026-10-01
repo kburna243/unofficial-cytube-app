@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.model.QueueScheduleItem
+import androidx.compose.foundation.border
+import com.example.ui.theme.AccentCoral
 import com.example.ui.theme.AccentIceBlue
 import com.example.ui.theme.AccentLavender
 import com.example.ui.theme.AccentPurple
@@ -87,8 +89,8 @@ fun UpNextOverlay(
         ) {
             Surface(
                 color = SurfaceDark.copy(alpha = 0.95f),
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, if (isRedditFallback) AccentVibrantOrange.copy(alpha = 0.5f) else AccentPurple.copy(alpha = 0.4f)),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, if (isRedditFallback) AccentCoral.copy(alpha = 0.6f) else AccentIceBlue.copy(alpha = 0.5f)),
                 shadowElevation = 32.dp,
                 modifier = Modifier.fillMaxHeight()
             ) {
@@ -104,17 +106,22 @@ fun UpNextOverlay(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(38.dp)
                                 .background(
-                                    if (isRedditFallback) AccentVibrantOrange.copy(alpha = 0.2f) else AccentPurple.copy(alpha = 0.25f),
-                                    RoundedCornerShape(8.dp)
+                                    if (isRedditFallback) AccentCoral.copy(alpha = 0.20f) else AccentIceBlue.copy(alpha = 0.20f),
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .border(
+                                    1.dp,
+                                    if (isRedditFallback) AccentCoral.copy(alpha = 0.5f) else AccentIceBlue.copy(alpha = 0.5f),
+                                    RoundedCornerShape(10.dp)
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.QueueMusic,
                                 contentDescription = null,
-                                tint = if (isRedditFallback) AccentVibrantOrange else AccentLavender,
+                                tint = if (isRedditFallback) AccentCoral else AccentLavender,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -124,7 +131,7 @@ fun UpNextOverlay(
                                 text = if (isRedditFallback) stringResource(R.string.epg_queue_title_reddit) else stringResource(R.string.queue_title),
                                 style = TextStyle(
                                     color = PureWhite,
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.ExtraBold,
                                     fontSize = 15.sp,
                                     letterSpacing = 1.sp
                                 )
@@ -137,7 +144,7 @@ fun UpNextOverlay(
                             Text(
                                 text = subtitleText,
                                 style = TextStyle(
-                                    color = if (isRedditFallback) AccentVibrantOrange else TextMuted,
+                                    color = if (isRedditFallback) AccentCoral else TextMuted,
                                     fontSize = 11.sp,
                                     fontWeight = if (isRedditFallback) FontWeight.Medium else FontWeight.Normal
                                 )

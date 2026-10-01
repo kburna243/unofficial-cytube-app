@@ -129,10 +129,10 @@ fun TriviaOverlay(
                 modifier = Modifier
                     .fillMaxWidth(0.88f)
                     .fillMaxSize(0.86f),
-                color = SurfaceDark,
-                shape = RoundedCornerShape(18.dp),
-                border = BorderStroke(1.dp, SubtleBorder),
-                shadowElevation = 24.dp
+                color = SurfaceDark.copy(alpha = 0.95f),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, AccentIceBlue.copy(alpha = 0.45f)),
+                shadowElevation = 32.dp
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Row(
@@ -145,8 +145,8 @@ fun TriviaOverlay(
                                 text = stringResource(R.string.trivia_title),
                                 style = TextStyle(
                                     color = AccentIceBlue,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 13.sp,
                                     letterSpacing = 2.sp
                                 )
                             )

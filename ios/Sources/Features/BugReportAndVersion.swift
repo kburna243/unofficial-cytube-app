@@ -14,12 +14,12 @@ enum AppEndpoint {
     /// hinter einem Tailscale-Funnel, der von aussen den TLS-Handshake abbricht — Geraete ohne
     /// Tailscale kamen dort nicht an Updates. Sie bleibt als Zweitquelle.
     static let versionFeeds = [
-        "https://raw.githubusercontent.com/kburna243/mikes-420grindhouse-app/main/version.json",
+        "https://raw.githubusercontent.com/kburna243/unofficial-cytube-app/main/version.json",
         "\(base)/version.json"
     ]
 
     static let versionJSON = versionFeeds[0]
-    static let appID = "mca-ios"
+    static let appID = "unofficial-cytube-ios"
     static var version: String {
         (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0.0"
     }
